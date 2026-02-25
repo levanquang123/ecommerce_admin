@@ -16,7 +16,7 @@ class CategorySubmitForm extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
-    //TODO: should complete call setDataForUpdateCategory
+    context.categoryProvider.setDataForUpdateCategory(category);
     return SingleChildScrollView(
       child: Form(
         key: context.categoryProvider.addCategoryFormKey,
@@ -65,7 +65,7 @@ class CategorySubmitForm extends StatelessWidget {
                       backgroundColor: secondaryColor,
                     ),
                     onPressed: () {
-                      Navigator.of(context).pop(); // Close the popup
+                      Navigator.of(context).pop();
                     },
                     child: Text('Cancel'),
                   ),
@@ -75,12 +75,19 @@ class CategorySubmitForm extends StatelessWidget {
                       foregroundColor: Colors.white,
                       backgroundColor: primaryColor,
                     ),
-                    onPressed: () {
-                      // Validate and save the form
-                      if (context.categoryProvider.addCategoryFormKey.currentState!.validate()) {
-                        context.categoryProvider.addCategoryFormKey.currentState!.save();
-                        //TODO: should complete call submitCategory
-                        Navigator.of(context).pop();
+                    onPressed: () async {
+                      if (context
+                          .categoryProvider.addCategoryFormKey.currentState!
+                          .validate()) {
+                        context
+                            .categoryProvider.addCategoryFormKey.currentState!
+                            .save();
+                        bool success =
+                        await context.categoryProvider.submitCategory();
+
+                        if (success) {
+                          Navigator.of(context).pop();
+                        }
                       }
                     },
                     child: Text('Submit'),
@@ -102,7 +109,9 @@ void showAddCategoryForm(BuildContext context, Category? category) {
     builder: (BuildContext context) {
       return AlertDialog(
         backgroundColor: bgColor,
-        title: Center(child: Text('Add Category'.toUpperCase(), style: TextStyle(color: primaryColor))),
+        title: Center(
+            child: Text('Add Category'.toUpperCase(),
+                style: TextStyle(color: primaryColor))),
         content: CategorySubmitForm(category: category),
       );
     },
