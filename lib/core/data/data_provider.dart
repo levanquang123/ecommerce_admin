@@ -186,9 +186,45 @@ class DataProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-//TODO: should complete getAllVariantType
+  Future<List<VariantType>> getAllVariantTypes({bool showSnack = false}) async {
+    try {
+      Response response = await service.getItems(endpointUrl: "variantTypes");
+      if (response.isOk) {
+        ApiResponse<List<VariantType>> apiResponse =
+            ApiResponse<List<VariantType>>.fromJson(
+          response.body,
+          (json) =>
+              (json as List).map((item) => VariantType.fromJson(item)).toList(),
+        );
 
-//TODO: should complete filterVariantTypes
+        _allVariantTypes = apiResponse.data ?? [];
+        _filteredVariantTypes = List.from(_allVariantTypes);
+        notifyListeners();
+
+        if (showSnack) {
+          SnackBarHelper.showSuccessSnackBar(apiResponse.message);
+        }
+      }
+    } catch (e) {
+      if (showSnack) SnackBarHelper.showErrorSnackBar(e.toString());
+      rethrow;
+    }
+    return _filteredVariantTypes;
+  }
+
+  void filterVariantTypes(String keyWord) {
+    if (keyWord.isEmpty) {
+      _filteredVariantTypes = List.from(_allVariantTypes);
+    } else {
+      final lowerKeyWord = keyWord.toLowerCase();
+      _filteredVariantTypes = _allVariantTypes.where((variantType) {
+        final name = (variantType.name ?? "").toLowerCase();
+        final type = (variantType.type ?? "").toLowerCase();
+        return name.contains(lowerKeyWord) || type.contains(lowerKeyWord);
+      }).toList();
+    }
+    notifyListeners();
+  }
 
 //TODO: should complete getAllVariant
 

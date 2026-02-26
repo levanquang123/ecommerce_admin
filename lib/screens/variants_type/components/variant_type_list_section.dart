@@ -1,4 +1,5 @@
 import '../../../core/data/data_provider.dart';
+import '../../../utility/extensions.dart';
 import 'add_variant_type_form.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -6,7 +7,6 @@ import 'package:provider/provider.dart';
 import '../../../utility/color_list.dart';
 import '../../../utility/constants.dart';
 import '../../../models/variant_type.dart';
-
 
 class VariantsTypeListSection extends StatelessWidget {
   const VariantsTypeListSection({
@@ -58,10 +58,12 @@ class VariantsTypeListSection extends StatelessWidget {
                       dataProvider.variantTypes[index],
                       index + 1,
                       edit: () {
-                        showAddVariantsTypeForm(context, dataProvider.variantTypes[index]);
+                        showAddVariantsTypeForm(
+                            context, dataProvider.variantTypes[index]);
                       },
                       delete: () {
-                        //TODO: should complete call deleteVariantType
+                        context.variantTypeProvider.deleteVariantType(
+                            dataProvider.variantTypes[index]);
                       },
                     ),
                   ),
@@ -75,7 +77,8 @@ class VariantsTypeListSection extends StatelessWidget {
   }
 }
 
-DataRow variantTypeDataRow(VariantType VariantTypeInfo, int index, {Function? edit, Function? delete}) {
+DataRow variantTypeDataRow(VariantType VariantTypeInfo, int index,
+    {Function? edit, Function? delete}) {
   return DataRow(
     cells: [
       DataCell(
