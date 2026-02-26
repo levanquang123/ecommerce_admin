@@ -139,7 +139,7 @@ class DashBoardProvider extends ChangeNotifier {
 
       final newListBrand = _dataProvider.brands
           .where((brand) =>
-              brand.subcategoryId?.sId == product.proSubCategoryId?.sId)
+              brand.subCategoryId?.sId == product.proSubCategoryId?.sId)
           .toList();
       brandsBySubCategory = newListBrand;
       selectedBrand = _dataProvider.brands.firstWhereOrNull(

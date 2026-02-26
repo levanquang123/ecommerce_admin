@@ -59,39 +59,43 @@ class SubCategoryProvider extends ChangeNotifier {
 
   Future<bool> updateSubCategory() async {
     try {
-      Map<String, dynamic> subCategory = {
-        "name": subCategoryNameCtrl.text,
-        "categoryId": selectedCategory?.sId ?? "",
-      };
+      if (subCategoryForUpdate != null) {
+        Map<String, dynamic> subCategory = {
+          'name': subCategoryNameCtrl.text,
+          'categoryId': selectedCategory?.sId
+        };
 
-      final response = await service.updateItem(
-        endpointUrl: "subCategories",
-        itemId: subCategoryForUpdate?.sId ?? "",
-        itemData: subCategory,
-      );
+        final response = await service.updateItem(
+          endpointUrl: 'subCategories',
+          itemData: subCategory,
+          itemId: subCategoryForUpdate?.sId ?? '',
+        );
 
-      if (response.isOk) {
-        ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
+        if (response.isOk) {
+          ApiResponse apiResponse =
+          ApiResponse.fromJson(response.body, null);
 
-        if (apiResponse.success == true) {
-          clearFields();
-          SnackBarHelper.showSuccessSnackBar(apiResponse.message ?? "Updated");
-          _dataProvider.getAllSubCategory();
-          return true;
+          if (apiResponse.success == true) {
+            clearFields();
+            SnackBarHelper.showSuccessSnackBar('${apiResponse.message}');
+            log('Sub Category Updated');
+            _dataProvider.getAllSubCategory();
+            return true;
+          } else {
+            SnackBarHelper.showErrorSnackBar(
+                'Failed to add Sub Category: ${apiResponse.message}');
+            return false;
+          }
         } else {
           SnackBarHelper.showErrorSnackBar(
-            "Failed to update category: ${apiResponse.message}",
-          );
+              'Error ${response.body?['message'] ?? response.statusText}');
           return false;
         }
-      } else {
-        SnackBarHelper.showErrorSnackBar(
-          response.body?['message'] ?? response.statusText ?? "Server Error",
-        );
-        return false;
       }
+      return false;
     } catch (e) {
-      SnackBarHelper.showErrorSnackBar("Error: $e");
+      print(e);
+      SnackBarHelper.showErrorSnackBar('An error occurred: $e');
       return false;
     }
   }

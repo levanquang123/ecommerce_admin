@@ -39,7 +39,7 @@ class CategoryId {
 
   factory CategoryId.fromJson(Map<String, dynamic> json) {
     return CategoryId(
-      sId: json["sId"],
+      sId: json["_id"],
       name: json["name"],
     );
   }

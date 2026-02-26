@@ -91,12 +91,14 @@ class BrandSubmitForm extends StatelessWidget {
                       foregroundColor: Colors.white,
                       backgroundColor: primaryColor,
                     ),
-                    onPressed: () {
+                    onPressed: () async {
                       // Validate and save the form
                       if (context.brandProvider.addBrandFormKey.currentState!.validate()) {
                         context.brandProvider.addBrandFormKey.currentState!.save();
-                        //TODO: should complete call submitBrand
-                        Navigator.of(context).pop();
+                        bool success = await context.brandProvider.submitBrand();
+                        if (success) {
+                          Navigator.of(context).pop();
+                        }
                       }
                     },
                     child: Text('Submit'),

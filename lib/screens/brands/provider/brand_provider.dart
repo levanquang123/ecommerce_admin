@@ -1,9 +1,11 @@
+import '../../../models/api_response.dart';
 import '../../../models/brand.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import '../../../core/data/data_provider.dart';
 import '../../../models/sub_category.dart';
 import '../../../services/http_services.dart';
+import '../../../utility/snack_bar_helper.dart';
 
 class BrandProvider extends ChangeNotifier {
   HttpService service = HttpService();
@@ -16,21 +18,122 @@ class BrandProvider extends ChangeNotifier {
 
   BrandProvider(this._dataProvider);
 
-  //TODO: should complete addBrand
+  Future<bool> addBrand() async {
+    try {
+      Map<String, dynamic> brand = {
+        'name': brandNameCtrl.text,
+        'subCategoryId': selectedSubCategory?.sId,
+      };
 
-  //TODO: should complete updateBrand
+      final response = await service.addItem(
+        endpointUrl: 'brands',
+        itemData: brand,
+      );
 
-  //TODO: should complete submitBrand
+      if (response.isOk) {
+        ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
 
-  //TODO: should complete deleteBrand
+        if (apiResponse.success == true) {
+          clearFields();
+          SnackBarHelper.showSuccessSnackBar(apiResponse.message);
+          _dataProvider.getAllBrands();
+          return true;
+        } else {
+          SnackBarHelper.showErrorSnackBar(
+              'Failed to add Brand: ${apiResponse.message}');
+          return false;
+        }
+      } else {
+        SnackBarHelper.showErrorSnackBar(
+            'Error ${response.body?['message'] ?? response.statusText}');
+        return false;
+      }
+    } catch (e) {
+      print(e);
+      SnackBarHelper.showErrorSnackBar('An error occurred: $e');
+      return false;
+    }
+  }
 
+  Future<bool> updateBrand() async {
+    try {
+      if (brandForUpdate != null) {
+        Map<String, dynamic> brand = {
+          'name': brandNameCtrl.text,
+          'subCategoryId': selectedSubCategory?.sId,
+        };
+
+        final response = await service.updateItem(
+          endpointUrl: 'brands',
+          itemData: brand,
+          itemId: brandForUpdate?.sId ?? '',
+        );
+
+        if (response.isOk) {
+          ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
+
+          if (apiResponse.success == true) {
+            clearFields();
+            SnackBarHelper.showSuccessSnackBar(apiResponse.message);
+            _dataProvider.getAllBrands();
+            return true;
+          } else {
+            SnackBarHelper.showErrorSnackBar(
+                'Failed to update Brand: ${apiResponse.message}');
+            return false;
+          }
+        } else {
+          SnackBarHelper.showErrorSnackBar(
+              'Error ${response.body?['message'] ?? response.statusText}');
+          return false;
+        }
+      }
+      return false;
+    } catch (e) {
+      print(e);
+      SnackBarHelper.showErrorSnackBar('An error occurred: $e');
+      return false;
+    }
+  }
+
+  Future<void> deleteBrand(Brand brand) async {
+    try {
+      Response response = await service.deleteItem(
+        endpointUrl: 'brands',
+        itemId: brand.sId ?? "",
+      );
+
+      if (response.isOk) {
+        ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
+
+        if (apiResponse.success == true) {
+          SnackBarHelper.showSuccessSnackBar(apiResponse.message);
+          _dataProvider.getAllBrands();
+        }
+      } else {
+        SnackBarHelper.showErrorSnackBar(
+            'Error ${response.body?['message'] ?? response.statusText}');
+      }
+    } catch (e) {
+      print(e);
+      rethrow;
+    }
+  }
+
+  Future<bool> submitBrand() async {
+    if (brandForUpdate != null) {
+      return await updateBrand();
+    } else {
+      return await addBrand();
+    }
+  }
   //? set data for update on editing
   setDataForUpdateBrand(Brand? brand) {
     if (brand != null) {
       brandForUpdate = brand;
       brandNameCtrl.text = brand.name ?? '';
       selectedSubCategory = _dataProvider.subCategories.firstWhereOrNull(
-          (element) => element.sId == brand.subcategoryId?.sId);
+          (element) => element.sId == brand.subCategoryId?.sId);
     } else {
       clearFields();
     }

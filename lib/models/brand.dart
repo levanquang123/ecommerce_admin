@@ -1,14 +1,14 @@
 class Brand {
   final String? sId;
   final String? name;
-  final SubcategoryId? subcategoryId;
+  final SubcategoryId? subCategoryId;
   final String? createdAt;
   final String? updatedAt;
 
   const Brand(
       {this.sId,
       this.name,
-      this.subcategoryId,
+      this.subCategoryId,
       this.createdAt,
       this.updatedAt});
 
@@ -16,8 +16,8 @@ class Brand {
     return Brand(
       sId: json['_id'],
       name: json['name'],
-      subcategoryId: json['subcategoryId'] != null
-          ? new SubcategoryId.fromJson(json['subcategoryId'])
+      subCategoryId: json['subCategoryId'] != null
+          ? new SubcategoryId.fromJson(json['subCategoryId'])
           : null,
       createdAt: json['createdAt'],
       updatedAt: json['updatedAt'],
@@ -28,7 +28,7 @@ class Brand {
     return {
       "_id": sId,
       "name": name,
-      "subcategoryId": subcategoryId?.toJson(),
+      "subCategoryId": subCategoryId?.toJson(),
       "createdAt": createdAt,
       "updatedAt": updatedAt,
     };
