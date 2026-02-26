@@ -16,9 +16,7 @@ class VariantSubmitForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var size = MediaQuery
-        .of(context)
-        .size;
+    var size = MediaQuery.of(context).size;
     context.variantProvider.setDataForUpdateVariant(variant);
     return SingleChildScrollView(
       child: Form(
@@ -42,8 +40,10 @@ class VariantSubmitForm extends StatelessWidget {
                         return CustomDropdown(
                           initialValue: variantProvider.selectedVariantType,
                           items: context.dataProvider.variantTypes,
-                          hintText: variantProvider.selectedVariantType?.name ?? 'Select Variant Type',
-                          displayItem: (VariantType? variantType) => variantType?.name ?? '',
+                          hintText: variantProvider.selectedVariantType?.name ??
+                              'Select Variant Type',
+                          displayItem: (VariantType? variantType) =>
+                              variantType?.name ?? '',
                           onChanged: (newValue) {
                             variantProvider.selectedVariantType = newValue;
                             variantProvider.updateUI();
@@ -54,7 +54,6 @@ class VariantSubmitForm extends StatelessWidget {
                             }
                             return null;
                           },
-
                         );
                       },
                     ),
@@ -94,12 +93,18 @@ class VariantSubmitForm extends StatelessWidget {
                       foregroundColor: Colors.white,
                       backgroundColor: primaryColor,
                     ),
-                    onPressed: () {
+                    onPressed: () async {
                       // Validate and save the form
-                      if (context.variantProvider.addVariantsFormKey.currentState!.validate()) {
-                        context.variantProvider.addVariantsFormKey.currentState!.save();
-                        //TODO: should complete call submitVariant
-                        Navigator.of(context).pop();
+                      if (context
+                          .variantProvider.addVariantsFormKey.currentState!
+                          .validate()) {
+                        context.variantProvider.addVariantsFormKey.currentState!
+                            .save();
+                        bool success =
+                            await context.variantProvider.submitVariant();
+                        if (success) {
+                          Navigator.of(context).pop(); // Close the popup
+                        }
                       }
                     },
                     child: Text('Submit'),
@@ -121,7 +126,9 @@ void showAddVariantForm(BuildContext context, Variant? variant) {
     builder: (BuildContext context) {
       return AlertDialog(
         backgroundColor: bgColor,
-        title: Center(child: Text('Add Variant'.toUpperCase(), style: TextStyle(color: primaryColor))),
+        title: Center(
+            child: Text('Add Variant'.toUpperCase(),
+                style: TextStyle(color: primaryColor))),
         content: VariantSubmitForm(variant: variant),
       );
     },

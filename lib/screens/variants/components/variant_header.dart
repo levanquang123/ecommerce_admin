@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../../utility/constants.dart';
+import '../../../utility/extensions.dart';
 
 class VariantsHeader extends StatelessWidget {
   const VariantsHeader({
@@ -18,7 +19,7 @@ class VariantsHeader extends StatelessWidget {
         Spacer(flex: 2),
         Expanded(child: SearchField(
           onChange: (val) {
-            //TODO: should complete call filterVariants
+            context.dataProvider.filterVariant(val);
           },
         )),
         ProfileCard()
