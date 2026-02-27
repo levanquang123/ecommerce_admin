@@ -86,6 +86,7 @@ class DataProvider extends ChangeNotifier {
       getAllVariantTypes(),
       getAllSubCategory(),
       getAllPosters(),
+      getAllCoupons(),
     ]);
 
     isLoading = false;
@@ -328,9 +329,52 @@ class DataProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-//TODO: should complete getAllCoupons
+  Future<List<Coupon>> getAllCoupons({bool showSnack = false}) async {
+    try {
+      Response response = await service.getItems(endpointUrl: "couponCodes");
 
-//TODO: should complete filterCoupons
+      if (response.isOk) {
+        ApiResponse<List<Coupon>> apiResponse =
+            ApiResponse<List<Coupon>>.fromJson(
+          response.body,
+          (json) =>
+              (json as List).map((item) => Coupon.fromJson(item)).toList(),
+        );
+
+        _allCoupons = apiResponse.data ?? [];
+        _filteredCoupons = List.from(_allCoupons);
+        notifyListeners();
+
+        if (showSnack) {
+          SnackBarHelper.showSuccessSnackBar(apiResponse.message);
+        }
+      } else {
+        if (showSnack) {
+          SnackBarHelper.showErrorSnackBar(
+            response.body?['message'] ?? response.statusText ?? "Server Error",
+          );
+        }
+      }
+    } catch (e) {
+      if (showSnack) SnackBarHelper.showErrorSnackBar(e.toString());
+      rethrow;
+    }
+
+    return _filteredCoupons;
+  }
+
+  void filterCoupons(String keyWord) {
+    if (keyWord.isEmpty) {
+      _filteredCoupons = List.from(_allCoupons);
+    } else {
+      final lowerKeyWord = keyWord.toLowerCase();
+      _filteredCoupons = _allCoupons.where((coupon) {
+        return (coupon.couponCode ?? "").toLowerCase().contains(lowerKeyWord);
+      }).toList();
+    }
+
+    notifyListeners();
+  }
 
   Future<List<Poster>> getAllPosters({bool showSnack = false}) async {
     try {

@@ -237,14 +237,15 @@ class CouponSubmitForm extends StatelessWidget {
                       foregroundColor: Colors.white,
                       backgroundColor: primaryColor,
                     ),
-                    onPressed: () {
-                      // Validate and save the form
+                    onPressed: ()async {
                       if (context.couponCodeProvider.addCouponFormKey
                           .currentState!.validate()) {
                         context.couponCodeProvider.addCouponFormKey
                             .currentState!.save();
-                        //TODO: should complete call  submitCoupon
-                        Navigator.of(context).pop();
+                       bool success = await context.couponCodeProvider.submitCoupon();
+                        if (success) {
+                          Navigator.of(context).pop();
+                        }
                       }
                     },
                     child: Text('Submit'),
