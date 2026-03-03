@@ -432,7 +432,7 @@ class DataProvider extends ChangeNotifier {
 //TODO: should complete calculateOrdersWithStatus
 
   filterProductsByQuantity(String productQntType) {
-    if (productQntType == "All products") {
+    if (productQntType == "All Product") {
       _filteredProducts = List.from(_allProducts);
     } else if (productQntType == "Out of Stock") {
       _filteredProducts = _allProducts.where((product) {
