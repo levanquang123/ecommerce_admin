@@ -14,7 +14,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-
+  get_storage: ^2.1.1
   cupertino_icons: ^1.0.3
   google_fonts: ^6.2.1
   flutter_svg: ^2.0.10

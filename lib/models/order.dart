@@ -141,13 +141,15 @@ class OrderTotal {
 class UserID {
   final String? sId;
   final String? name;
+  final String? role;
 
-  const UserID({this.sId, this.name});
+  const UserID({this.sId, this.name, this.role});
 
   factory UserID.fromJson(Map<String, dynamic> json) {
     return UserID(
       sId: json['_id'],
       name: json['name'],
+      role: json['role'],
     );
   }
 
@@ -155,6 +157,7 @@ class UserID {
     return {
       '_id': sId,
       'name': name,
+      'role': role,
     };
   }
 }

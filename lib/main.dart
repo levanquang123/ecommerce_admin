@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'core/data/data_provider.dart';
@@ -8,6 +9,7 @@ import 'screens/brands/provider/brand_provider.dart';
 import 'screens/category/provider/category_provider.dart';
 import 'screens/coupon_code/provider/coupon_code_provider.dart';
 import 'screens/dashboard/provider/dash_board_provider.dart';
+import 'screens/login/provider/login_provider.dart';
 import 'screens/main/main_screen.dart';
 import 'screens/main/provider/main_screen_provider.dart';
 import 'screens/notification/provider/notification_provider.dart';
@@ -21,8 +23,9 @@ import 'utility/constants.dart';
 final GlobalKey<ScaffoldMessengerState> messengerKey =
     GlobalKey<ScaffoldMessengerState>();
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await GetStorage.init();
   runApp(
     ChangeNotifierProvider(
       create: (context) => DataProvider()..init(),
@@ -31,6 +34,8 @@ void main() {
           return MultiProvider(
             providers: [
               ChangeNotifierProvider(create: (context) => MainScreenProvider()),
+              ChangeNotifierProvider(
+                  create: (context) => LoginProvider(dataProvider)),
               ChangeNotifierProvider(
                   create: (context) => CategoryProvider(dataProvider)),
               ChangeNotifierProvider(
@@ -63,6 +68,9 @@ void main() {
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final box = GetStorage();
+    final String? token = box.read('token');
+    
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       scaffoldMessengerKey: messengerKey,
@@ -76,7 +84,7 @@ class MyApp extends StatelessWidget {
             .apply(bodyColor: Colors.white),
         canvasColor: secondaryColor,
       ),
-      initialRoute: AppPages.HOME,
+      initialRoute: (token != null && token.isNotEmpty) ? AppPages.HOME : AppPages.LOGIN,
       unknownRoute: GetPage(name: '/notFound', page: () => MainScreen()),
       defaultTransition: Transition.cupertino,
       getPages: AppPages.routes,
