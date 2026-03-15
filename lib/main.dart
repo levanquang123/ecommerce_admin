@@ -22,7 +22,7 @@ import 'utility/constants.dart';
 
 final GlobalKey<ScaffoldMessengerState> messengerKey =
     GlobalKey<ScaffoldMessengerState>();
-
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
@@ -73,6 +73,7 @@ class MyApp extends StatelessWidget {
     
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
+      navigatorKey: navigatorKey,
       scaffoldMessengerKey: messengerKey,
       title: 'Flutter Admin Panel',
       theme: ThemeData.dark().copyWith(

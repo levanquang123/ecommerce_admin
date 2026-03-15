@@ -20,6 +20,8 @@ class LoginProvider extends ChangeNotifier {
 
   LoginProvider(this._dataProvider);
 
+  Map<String, dynamic>? get currentUser => _box.read("user");
+
   Future<void> login(BuildContext context) async {
     if (!loginFormKey.currentState!.validate()) return;
 
@@ -82,6 +84,8 @@ class LoginProvider extends ChangeNotifier {
   void logout() {
     _box.remove("token");
     _box.remove("user");
+    nameCtrl.clear();
+    passwordCtrl.clear();
     Get.offAllNamed(AppPages.LOGIN);
   }
 }
