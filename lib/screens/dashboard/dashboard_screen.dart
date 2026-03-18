@@ -1,6 +1,5 @@
 import 'package:admin/utility/extensions.dart';
-
-import 'components/dash_board_header.dart';
+import '../../widgets/top_header.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import '../../utility/constants.dart';
@@ -18,7 +17,13 @@ class DashboardScreen extends StatelessWidget {
         padding: EdgeInsets.all(defaultPadding),
         child: Column(
           children: [
-            DashBoardHeader(),
+            TopHeader(
+              title: "Dashboard",
+              onSearch: (val) {
+                context.dashBoardProvider.updateUI(); // Hoặc logic search của bạn
+                context.dataProvider.filterProducts(val);
+              },
+            ),
             Gap(defaultPadding),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,

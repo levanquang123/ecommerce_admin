@@ -1,11 +1,10 @@
 import 'package:admin/utility/extensions.dart';
-
-import 'components/order_header.dart';
-import 'components/order_list_section.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import '../../utility/constants.dart';
 import '../../widgets/custom_dropdown.dart';
+import '../../widgets/top_header.dart';
+import 'components/order_list_section.dart';
 
 class OrderScreen extends StatelessWidget {
   @override
@@ -16,7 +15,12 @@ class OrderScreen extends StatelessWidget {
         padding: EdgeInsets.all(defaultPadding),
         child: Column(
           children: [
-            OrderHeader(),
+            TopHeader(
+              title: "Order",
+              onSearch: (val) {
+                context.dataProvider.filterOrders(val);
+              },
+            ),
             SizedBox(height: defaultPadding),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,

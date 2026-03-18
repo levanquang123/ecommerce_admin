@@ -2,8 +2,8 @@ import 'package:admin/utility/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import '../../utility/constants.dart';
+import '../../widgets/top_header.dart';
 import 'components/add_sub_category_form.dart';
-import 'components/sub_category_header.dart';
 import 'components/sub_category_list_section.dart';
 
 
@@ -16,7 +16,12 @@ class SubCategoryScreen extends StatelessWidget {
         padding: EdgeInsets.all(defaultPadding),
         child: Column(
           children: [
-            SubCategoryHeader(),
+            TopHeader(
+              title: "Sub Category",
+              onSearch: (val) {
+                context.dataProvider.filterSubCategories(val);
+              },
+            ),
             Gap(defaultPadding),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,

@@ -2,8 +2,8 @@ import 'package:admin/utility/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import '../../utility/constants.dart';
+import '../../widgets/top_header.dart';
 import 'components/add_brand_form.dart';
-import 'components/brand_header.dart';
 import 'components/brand_list_section.dart';
 
 class BrandScreen extends StatelessWidget {
@@ -15,7 +15,12 @@ class BrandScreen extends StatelessWidget {
         padding: EdgeInsets.all(defaultPadding),
         child: Column(
           children: [
-            BrandHeader(),
+            TopHeader(
+              title: "Brand",
+              onSearch: (val) {
+                context.dataProvider.filterBrands(val);
+              },
+            ),
             Gap(defaultPadding),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -29,7 +34,7 @@ class BrandScreen extends StatelessWidget {
                         children: [
                           Expanded(
                             child: Text(
-                              "My Categories",
+                              "My Brands",
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
                           ),

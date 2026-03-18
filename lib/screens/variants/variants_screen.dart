@@ -2,8 +2,8 @@ import 'package:admin/utility/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import '../../utility/constants.dart';
+import '../../widgets/top_header.dart';
 import 'components/add_variant_form.dart';
-import 'components/variant_header.dart';
 import 'components/variants_list_section.dart';
 
 class VariantsScreen extends StatelessWidget {
@@ -15,7 +15,12 @@ class VariantsScreen extends StatelessWidget {
         padding: EdgeInsets.all(defaultPadding),
         child: Column(
           children: [
-            VariantsHeader(),
+            TopHeader(
+              title: "Variant",
+              onSearch: (val) {
+                context.dataProvider.filterVariant(val);
+              },
+            ),
             Gap(defaultPadding),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,

@@ -1,11 +1,11 @@
 import 'package:admin/utility/extensions.dart';
 
 import 'components/add_poster_form.dart';
-import 'components/poster_header.dart';
 import 'components/poster_list_section.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import '../../utility/constants.dart';
+import '../../widgets/top_header.dart';
 
 
 class PosterScreen extends StatelessWidget {
@@ -17,7 +17,12 @@ class PosterScreen extends StatelessWidget {
         padding: EdgeInsets.all(defaultPadding),
         child: Column(
           children: [
-            PosterHeader(),
+            TopHeader(
+              title: "Poster",
+              onSearch: (val) {
+                context.dataProvider.filterPosters(val);
+              },
+            ),
             SizedBox(height: defaultPadding),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,

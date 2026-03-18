@@ -1,11 +1,10 @@
 import 'package:admin/utility/extensions.dart';
-
-import 'components/coupon_code_header.dart';
-import 'components/coupon_list_section.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import '../../utility/constants.dart';
+import '../../widgets/top_header.dart';
 import 'components/add_coupon_form.dart';
+import 'components/coupon_list_section.dart';
 
 class CouponCodeScreen extends StatelessWidget {
   @override
@@ -16,7 +15,12 @@ class CouponCodeScreen extends StatelessWidget {
         padding: EdgeInsets.all(defaultPadding),
         child: Column(
           children: [
-            CouponCodeHeader(),
+            TopHeader(
+              title: "Coupon Code",
+              onSearch: (val) {
+                context.dataProvider.filterCoupons(val);
+              },
+            ),
             Gap(defaultPadding),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -30,7 +34,7 @@ class CouponCodeScreen extends StatelessWidget {
                         children: [
                           Expanded(
                             child: Text(
-                              "My Sub Categories",
+                              "My Coupons",
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
                           ),

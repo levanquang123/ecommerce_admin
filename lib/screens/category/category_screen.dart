@@ -2,8 +2,8 @@ import 'package:admin/utility/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import '../../utility/constants.dart';
+import '../../widgets/top_header.dart';
 import 'components/add_category_form.dart';
-import 'components/category_header.dart';
 import 'components/category_list_section.dart';
 
 class CategoryScreen extends StatelessWidget {
@@ -17,7 +17,12 @@ class CategoryScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const CategoryHeader(),
+            TopHeader(
+              title: "Category",
+              onSearch: (val) {
+                context.dataProvider.filterCategories(val);
+              },
+            ),
             const SizedBox(height: defaultPadding),
 
             /// Title + Action buttons
