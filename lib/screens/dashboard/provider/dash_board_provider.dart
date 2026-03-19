@@ -58,20 +58,31 @@ class DashBoardProvider extends ChangeNotifier {
         return false;
       }
 
+      SnackBarHelper.showLoadingSnackBar('Adding product and uploading images...');
+
       final Map<String, dynamic> formDataMap = {
         'name': productNameCtrl.text.trim(),
         'description': productDescCtrl.text.trim(),
         'proCategoryId': selectedCategory?.sId ?? '',
         'proSubCategoryId': selectedSubCategory?.sId ?? '',
-        'proBrandId': selectedBrand?.sId ?? '',
         'price': productPriceCtrl.text.trim(),
         'offerPrice': productOffPriceCtrl.text.trim().isEmpty
             ? productPriceCtrl.text.trim()
             : productOffPriceCtrl.text.trim(),
         'quantity': productQntCtrl.text.trim(),
-        'proVariantTypeId': selectedVariantType?.sId ?? '',
-        'proVariantId': selectedVariants,
       };
+
+      if (selectedBrand?.sId != null && selectedBrand!.sId!.isNotEmpty) {
+        formDataMap['proBrandId'] = selectedBrand?.sId;
+      }
+      
+      if (selectedVariantType?.sId != null && selectedVariantType!.sId!.isNotEmpty) {
+        formDataMap['proVariantTypeId'] = selectedVariantType?.sId;
+      }
+
+      if (selectedVariants.isNotEmpty) {
+        formDataMap['proVariantId'] = selectedVariants;
+      }
 
       final form = await createFormDataForMultipleImage(
         imgXFiles: [
@@ -89,7 +100,7 @@ class DashBoardProvider extends ChangeNotifier {
         itemData: form,
       );
 
-      log('ADD PRODUCT RESPONSE: ${response.body}');
+      SnackBarHelper.hideSnackBar();
 
       if (response.isOk) {
         final apiResponse = ApiResponse.fromJson(response.body, null);
@@ -97,31 +108,19 @@ class DashBoardProvider extends ChangeNotifier {
         if (apiResponse.success == true) {
           clearFields();
           notifyListeners();
-
           SnackBarHelper.showSuccessSnackBar(apiResponse.message);
-
           await _dataProvider.getAllProducts();
-
           return true;
         } else {
-          SnackBarHelper.showErrorSnackBar(
-            apiResponse.message.isNotEmpty
-                ? apiResponse.message
-                : 'Add product failed.',
-          );
+          SnackBarHelper.showErrorSnackBar(apiResponse.message);
           return false;
         }
       } else {
-        SnackBarHelper.showErrorSnackBar(
-          response.body?['message']?.toString() ??
-              response.statusText?.toString() ??
-              'Request failed.',
-        );
+        SnackBarHelper.showErrorSnackBar(response.body?['message'] ?? 'Request failed.');
         return false;
       }
-    } catch (e, s) {
-      log('addProduct error: $e');
-      log('stack: $s');
+    } catch (e) {
+      SnackBarHelper.hideSnackBar();
       SnackBarHelper.showErrorSnackBar('An error occurred: $e');
       return false;
     }
@@ -131,20 +130,35 @@ class DashBoardProvider extends ChangeNotifier {
     try {
       if (productForUpdate == null) return false;
 
+      SnackBarHelper.showLoadingSnackBar('Updating product details...');
+
       final Map<String, dynamic> formDataMap = {
         'name': productNameCtrl.text.trim(),
         'description': productDescCtrl.text.trim(),
         'proCategoryId': selectedCategory?.sId ?? '',
         'proSubCategoryId': selectedSubCategory?.sId ?? '',
-        'proBrandId': selectedBrand?.sId ?? '',
         'price': productPriceCtrl.text.trim(),
         'offerPrice': productOffPriceCtrl.text.trim().isEmpty
             ? productPriceCtrl.text.trim()
             : productOffPriceCtrl.text.trim(),
         'quantity': productQntCtrl.text.trim(),
-        'proVariantTypeId': selectedVariantType?.sId ?? '',
-        'proVariantId': selectedVariants,
       };
+
+      if (selectedBrand?.sId != null && selectedBrand!.sId!.isNotEmpty) {
+        formDataMap['proBrandId'] = selectedBrand?.sId;
+      } else {
+        formDataMap['proBrandId'] = null;
+      }
+      
+      if (selectedVariantType?.sId != null && selectedVariantType!.sId!.isNotEmpty) {
+        formDataMap['proVariantTypeId'] = selectedVariantType?.sId;
+      } else {
+        formDataMap['proVariantTypeId'] = null;
+      }
+
+      if (selectedVariants.isNotEmpty) {
+        formDataMap['proVariantId'] = selectedVariants;
+      }
 
       final form = await createFormDataForMultipleImage(
         imgXFiles: [
@@ -163,9 +177,10 @@ class DashBoardProvider extends ChangeNotifier {
         itemId: productForUpdate?.sId ?? '',
       );
 
+      SnackBarHelper.hideSnackBar();
+
       if (response.isOk) {
         final apiResponse = ApiResponse.fromJson(response.body, null);
-
         if (apiResponse.success == true) {
           clearFields();
           SnackBarHelper.showSuccessSnackBar(apiResponse.message);
@@ -176,13 +191,11 @@ class DashBoardProvider extends ChangeNotifier {
           return false;
         }
       } else {
-        SnackBarHelper.showErrorSnackBar(
-          response.body?['message'] ?? response.statusText,
-        );
+        SnackBarHelper.showErrorSnackBar(response.body?['message'] ?? 'Update failed.');
         return false;
       }
     } catch (e) {
-      log(e.toString());
+      SnackBarHelper.hideSnackBar();
       SnackBarHelper.showErrorSnackBar('An error occurred: $e');
       return false;
     }
@@ -194,10 +207,8 @@ class DashBoardProvider extends ChangeNotifier {
         endpointUrl: 'products',
         itemId: product.sId ?? '',
       );
-
       if (response.isOk) {
         final apiResponse = ApiResponse.fromJson(response.body, null);
-
         if (apiResponse.success == true) {
           SnackBarHelper.showSuccessSnackBar(apiResponse.message);
           _dataProvider.getAllProducts();
@@ -207,13 +218,11 @@ class DashBoardProvider extends ChangeNotifier {
           return false;
         }
       } else {
-        SnackBarHelper.showErrorSnackBar(
-          response.body?['message'] ?? response.statusText,
-        );
+        SnackBarHelper.showErrorSnackBar(response.body?['message'] ?? 'Delete failed.');
         return false;
       }
     } catch (e) {
-      log(e.toString());
+      SnackBarHelper.hideSnackBar();
       SnackBarHelper.showErrorSnackBar('An error occurred: $e');
       return false;
     }
@@ -273,9 +282,7 @@ class DashBoardProvider extends ChangeNotifier {
         }
       }
     }
-
-    final FormData form = FormData(formData);
-    return form;
+    return FormData(formData);
   }
 
   filterSubCategory(Category category) {

@@ -21,6 +21,7 @@ class SubCategoryProvider extends ChangeNotifier {
 
   Future<bool> addSubCategory() async {
     try {
+      SnackBarHelper.showLoadingSnackBar('Adding sub category...');
       Map<String, dynamic> subCategory = {
         'name': subCategoryNameCtrl.text,
         'categoryId': selectedCategory?.sId,
@@ -31,6 +32,7 @@ class SubCategoryProvider extends ChangeNotifier {
         itemData: subCategory,
       );
 
+      SnackBarHelper.hideSnackBar();
       if (response.isOk) {
         ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
 
@@ -51,6 +53,7 @@ class SubCategoryProvider extends ChangeNotifier {
         return false;
       }
     } catch (e) {
+      SnackBarHelper.hideSnackBar();
       print(e);
       SnackBarHelper.showErrorSnackBar('An error occurred: $e');
       return false;
@@ -60,6 +63,7 @@ class SubCategoryProvider extends ChangeNotifier {
   Future<bool> updateSubCategory() async {
     try {
       if (subCategoryForUpdate != null) {
+        SnackBarHelper.showLoadingSnackBar('Updating sub category...');
         Map<String, dynamic> subCategory = {
           'name': subCategoryNameCtrl.text,
           'categoryId': selectedCategory?.sId
@@ -71,6 +75,7 @@ class SubCategoryProvider extends ChangeNotifier {
           itemId: subCategoryForUpdate?.sId ?? '',
         );
 
+        SnackBarHelper.hideSnackBar();
         if (response.isOk) {
           ApiResponse apiResponse =
           ApiResponse.fromJson(response.body, null);
@@ -83,7 +88,7 @@ class SubCategoryProvider extends ChangeNotifier {
             return true;
           } else {
             SnackBarHelper.showErrorSnackBar(
-                'Failed to add Sub Category: ${apiResponse.message}');
+                'Failed to update Sub Category: ${apiResponse.message}');
             return false;
           }
         } else {
@@ -94,6 +99,7 @@ class SubCategoryProvider extends ChangeNotifier {
       }
       return false;
     } catch (e) {
+      SnackBarHelper.hideSnackBar();
       print(e);
       SnackBarHelper.showErrorSnackBar('An error occurred: $e');
       return false;
@@ -120,6 +126,7 @@ class SubCategoryProvider extends ChangeNotifier {
         );
       }
     } catch (e) {
+      SnackBarHelper.hideSnackBar();
       print(e);
       rethrow;
     }
@@ -134,12 +141,13 @@ class SubCategoryProvider extends ChangeNotifier {
   }
 
   setDataForUpdateSubCategory(SubCategory? subCategory) {
-    clearFields();
     if (subCategory != null) {
       subCategoryForUpdate = subCategory;
       subCategoryNameCtrl.text = subCategory.name ?? '';
       selectedCategory = _dataProvider.categories.firstWhereOrNull(
           (element) => element.sId == subCategory.categoryId?.sId);
+    } else {
+      clearFields();
     }
   }
 
@@ -147,6 +155,7 @@ class SubCategoryProvider extends ChangeNotifier {
     subCategoryNameCtrl.clear();
     selectedCategory = null;
     subCategoryForUpdate = null;
+    notifyListeners();
   }
 
   updateUi() {

@@ -26,6 +26,7 @@ class PosterProvider extends ChangeNotifier {
 
   Future<bool> addPoster() async {
     try {
+      SnackBarHelper.showLoadingSnackBar('Adding poster...');
       if (selectedImage == null) {
         SnackBarHelper.showErrorSnackBar("Please Choose A Image !");
         return false;
@@ -42,6 +43,7 @@ class PosterProvider extends ChangeNotifier {
       final response =
       await service.addItem(endpointUrl: "posters", itemData: form);
 
+      SnackBarHelper.hideSnackBar();
       if (response.isOk) {
         ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
 
@@ -68,6 +70,7 @@ class PosterProvider extends ChangeNotifier {
 
   Future<bool> updatePoster() async {
     try {
+      SnackBarHelper.showLoadingSnackBar('Updating poster...');
       if (posterForUpdate == null) {
         SnackBarHelper.showErrorSnackBar("Poster not found for update");
         return false;
@@ -81,6 +84,7 @@ class PosterProvider extends ChangeNotifier {
       FormData formData =
       await createFormData(imgXFile: imgXFile, formData: formDataMap);
 
+      SnackBarHelper.hideSnackBar();
       final response = await service.updateItem(
         endpointUrl: "posters",
         itemId: posterForUpdate?.sId ?? "",

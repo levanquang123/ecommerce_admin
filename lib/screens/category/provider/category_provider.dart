@@ -29,9 +29,10 @@ class CategoryProvider extends ChangeNotifier {
         return false;
       }
 
+      SnackBarHelper.showLoadingSnackBar('Adding category and uploading image...');
+
       Map<String, dynamic> formDataMap = {
         "name": categoryNameCtrl.text,
-        "image": "no-data"
       };
 
       final FormData form =
@@ -39,6 +40,8 @@ class CategoryProvider extends ChangeNotifier {
 
       final response =
           await service.addItem(endpointUrl: "categories", itemData: form);
+
+      SnackBarHelper.hideSnackBar();
 
       if (response.isOk) {
         ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
@@ -54,10 +57,12 @@ class CategoryProvider extends ChangeNotifier {
           return false;
         }
       } else {
-        SnackBarHelper.showErrorSnackBar("Server Error");
+        SnackBarHelper.showErrorSnackBar(
+            response.body?['message'] ?? response.statusText ?? "Server Error");
         return false;
       }
     } catch (e) {
+      SnackBarHelper.hideSnackBar();
       SnackBarHelper.showErrorSnackBar("Error: $e");
       return false;
     }
@@ -65,6 +70,7 @@ class CategoryProvider extends ChangeNotifier {
 
   Future<bool> updateCategory() async {
     try {
+      SnackBarHelper.showLoadingSnackBar('Updating category...');
       Map<String, dynamic> formDataMap = {
         "name": categoryNameCtrl.text,
         "image": categoryForUpdate?.image ?? "",
@@ -78,6 +84,8 @@ class CategoryProvider extends ChangeNotifier {
         itemId: categoryForUpdate?.sId ?? "",
         itemData: formData,
       );
+
+      SnackBarHelper.hideSnackBar();
 
       if (response.isOk) {
         ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
@@ -100,6 +108,7 @@ class CategoryProvider extends ChangeNotifier {
         return false;
       }
     } catch (e) {
+      SnackBarHelper.hideSnackBar();
       SnackBarHelper.showErrorSnackBar("Error: $e");
       return false;
     }
@@ -135,6 +144,7 @@ class CategoryProvider extends ChangeNotifier {
         );
       }
     } catch (e) {
+      SnackBarHelper.hideSnackBar();
       print(e);
       rethrow;
     }
@@ -171,12 +181,12 @@ class CategoryProvider extends ChangeNotifier {
 
   setDataForUpdateCategory(Category? category) {
     if (category != null) {
-      clearFields();
       categoryForUpdate = category;
       categoryNameCtrl.text = category.name ?? '';
     } else {
       clearFields();
     }
+    notifyListeners();
   }
 
   clearFields() {
@@ -184,5 +194,6 @@ class CategoryProvider extends ChangeNotifier {
     selectedImage = null;
     imgXFile = null;
     categoryForUpdate = null;
+    notifyListeners();
   }
 }

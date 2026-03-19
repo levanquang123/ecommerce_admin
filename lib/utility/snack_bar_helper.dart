@@ -2,15 +2,14 @@ import 'package:flutter/material.dart';
 import '../main.dart';
 
 class SnackBarHelper {
-
   static OverlayEntry? _overlay;
 
-  static void _show(String message, Color color, IconData icon) {
-
+  static void _show(String message, Color color, IconData icon, {bool autoDismiss = true}) {
     final overlay = navigatorKey.currentState?.overlay;
     if (overlay == null) return;
 
     _overlay?.remove();
+    _overlay = null;
 
     _overlay = OverlayEntry(
       builder: (context) {
@@ -47,7 +46,13 @@ class SnackBarHelper {
               ),
               child: Row(
                 children: [
-                  Icon(icon, color: Colors.white),
+                  icon == Icons.sync 
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                      )
+                    : Icon(icon, color: Colors.white),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
@@ -68,10 +73,12 @@ class SnackBarHelper {
 
     overlay.insert(_overlay!);
 
-    Future.delayed(const Duration(milliseconds: 2000), () {
-      _overlay?.remove();
-      _overlay = null;
-    });
+    if (autoDismiss) {
+      Future.delayed(const Duration(milliseconds: 2000), () {
+        _overlay?.remove();
+        _overlay = null;
+      });
+    }
   }
 
   static void showSuccessSnackBar(String message) {
@@ -80,5 +87,14 @@ class SnackBarHelper {
 
   static void showErrorSnackBar(String message) {
     _show(message, Colors.red, Icons.error);
+  }
+
+  static void showLoadingSnackBar(String message) {
+    _show(message, Colors.blueGrey, Icons.sync, autoDismiss: false);
+  }
+
+  static void hideSnackBar() {
+    _overlay?.remove();
+    _overlay = null;
   }
 }

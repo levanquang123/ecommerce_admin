@@ -28,6 +28,7 @@ class VariantsProvider extends ChangeNotifier {
 
   Future<bool> addVariant() async {
     try {
+      SnackBarHelper.showLoadingSnackBar('Adding variant...');
       final Map<String, dynamic> variant = {
         'name': variantCtrl.text.trim(),
         'variantTypeId': selectedVariantType?.sId,
@@ -38,6 +39,7 @@ class VariantsProvider extends ChangeNotifier {
         itemData: variant,
       );
 
+      SnackBarHelper.hideSnackBar();
       if (response.isOk) {
         final apiResponse = ApiResponse.fromJson(response.body, null);
 
@@ -57,6 +59,7 @@ class VariantsProvider extends ChangeNotifier {
         return false;
       }
     } catch (e) {
+      SnackBarHelper.hideSnackBar();
       log(e.toString());
       SnackBarHelper.showErrorSnackBar('An error occurred: $e');
       return false;
@@ -67,6 +70,7 @@ class VariantsProvider extends ChangeNotifier {
     try {
       if (variantForUpdate == null) return false;
 
+      SnackBarHelper.showLoadingSnackBar('Updating variant...');
       final Map<String, dynamic> variant = {
         'name': variantCtrl.text.trim(),
         'variantTypeId': selectedVariantType?.sId,
@@ -78,6 +82,7 @@ class VariantsProvider extends ChangeNotifier {
         itemId: variantForUpdate?.sId ?? '',
       );
 
+      SnackBarHelper.hideSnackBar();
       if (response.isOk) {
         final apiResponse = ApiResponse.fromJson(response.body, null);
 
@@ -97,6 +102,7 @@ class VariantsProvider extends ChangeNotifier {
         return false;
       }
     } catch (e) {
+      SnackBarHelper.hideSnackBar();
       log(e.toString());
       SnackBarHelper.showErrorSnackBar('An error occurred: $e');
       return false;
@@ -113,11 +119,13 @@ class VariantsProvider extends ChangeNotifier {
 
   Future<bool> deleteVariant(Variant variant) async {
     try {
+      SnackBarHelper.showLoadingSnackBar('Deleting variant...');
       final Response response = await service.deleteItem(
         endpointUrl: 'variants',
         itemId: variant.sId ?? '',
       );
 
+      SnackBarHelper.hideSnackBar();
       if (response.isOk) {
         final apiResponse = ApiResponse.fromJson(response.body, null);
 
@@ -136,6 +144,7 @@ class VariantsProvider extends ChangeNotifier {
         return false;
       }
     } catch (e) {
+      SnackBarHelper.hideSnackBar();
       log(e.toString());
       SnackBarHelper.showErrorSnackBar('An error occurred: $e');
       return false;

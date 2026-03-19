@@ -218,24 +218,19 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> {
                     child: Consumer<DashBoardProvider>(
                       builder: (context, dashProvider, child) {
                         return CustomDropdown(
-                            key: ValueKey(dashProvider.selectedBrand?.sId),
-                            initialValue: dashProvider.selectedBrand,
-                            items: dashProvider.brandsBySubCategory,
-                            hintText: dashProvider.selectedBrand?.name ??
-                                'Select Brand',
-                            displayItem: (Brand? brand) => brand?.name ?? '',
-                            onChanged: (newValue) {
-                              if (newValue != null) {
-                                dashProvider.selectedBrand = newValue;
-                                dashProvider.updateUI();
-                              }
-                            },
-                            validator: (value) {
-                              if (value == null) {
-                                return 'Please brand';
-                              }
-                              return null;
-                            });
+                          key: ValueKey(dashProvider.selectedBrand?.sId),
+                          initialValue: dashProvider.selectedBrand,
+                          items: dashProvider.brandsBySubCategory,
+                          hintText: dashProvider.selectedBrand?.name ??
+                              'Select Brand',
+                          displayItem: (Brand? brand) => brand?.name ?? '',
+                          onChanged: (newValue) {
+                            if (newValue != null) {
+                              dashProvider.selectedBrand = newValue;
+                              dashProvider.updateUI();
+                            }
+                          },
+                        );
                       },
                     ),
                   ),
@@ -349,8 +344,8 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> {
                       backgroundColor: primaryColor,
                     ),
                     onPressed: () async {
-                      final formState =
-                          context.dashBoardProvider.addProductFormKey.currentState;
+                      final formState = context
+                          .dashBoardProvider.addProductFormKey.currentState;
 
                       if (formState == null) return;
 
@@ -358,7 +353,8 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> {
 
                       formState.save();
 
-                      final success = await context.dashBoardProvider.submitProduct();
+                      final success =
+                          await context.dashBoardProvider.submitProduct();
 
                       if (success && context.mounted) {
                         Navigator.of(context).pop();
