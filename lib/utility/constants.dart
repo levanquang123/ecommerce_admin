@@ -6,3 +6,5 @@ const bgColor = Color(0xFF212332);
 const defaultPadding = 16.0;
 const TOKEN = "TOKEN";
 const MAIN_URL = 'https://api.levanquang.com/';
+
+// const MAIN_URL = "http://localhost:3000/";
