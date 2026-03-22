@@ -45,31 +45,37 @@ class _LoginScreenState extends State<LoginScreen> {
                 Text(
                   "Admin Login",
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
                 const Gap(defaultPadding * 2),
-                
-                // Name Field
+
+                // Email Field
                 TextFormField(
-                  controller: loginProvider.nameCtrl,
+                  controller: loginProvider.emailCtrl,
+                  keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
-                    labelText: "Name",
-                    prefixIcon: const Icon(Icons.person),
+                    labelText: "Email",
+                    prefixIcon: const Icon(Icons.email),
+                    hintText: "example@gmail.com",
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return 'Please enter your name';
+                      return 'Please enter your email';
+                    }
+                    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                    if (!emailRegex.hasMatch(value)) {
+                      return 'Please enter a valid email address';
                     }
                     return null;
                   },
                 ),
                 const Gap(defaultPadding),
-                
+
                 // Password Field
                 TextFormField(
                   controller: loginProvider.passwordCtrl,
@@ -102,7 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   },
                 ),
                 const Gap(defaultPadding * 2),
-                
+
                 // Login Button
                 SizedBox(
                   width: double.infinity,
@@ -118,11 +124,22 @@ class _LoginScreenState extends State<LoginScreen> {
                         ? null
                         : () => loginProvider.login(context),
                     child: loginProvider.isReadOnly
-                        ? const CircularProgressIndicator(color: Colors.white)
+                        ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
                         : const Text(
-                            "Login",
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
+                      "Login",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                 ),
               ],

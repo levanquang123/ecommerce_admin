@@ -6,6 +6,7 @@ import '../../../models/user.dart';
 import '../../../services/http_services.dart';
 import '../../../utility/snack_bar_helper.dart';
 import '../../../core/routes/app_pages.dart';
+import '../../../utility/constants.dart';
 
 class LoginProvider extends ChangeNotifier {
   final HttpService _httpService = HttpService();
@@ -13,14 +14,20 @@ class LoginProvider extends ChangeNotifier {
   final GetStorage _box = GetStorage();
 
   final GlobalKey<FormState> loginFormKey = GlobalKey<FormState>();
-  final TextEditingController nameCtrl = TextEditingController();
+  final TextEditingController emailCtrl = TextEditingController();
   final TextEditingController passwordCtrl = TextEditingController();
 
   bool isReadOnly = false;
 
   LoginProvider(this._dataProvider);
 
-  Map<String, dynamic>? get currentUser => _box.read("user");
+  User? get currentUser {
+    final userData = _box.read("user");
+    if (userData != null) {
+      return User.fromJson(userData);
+    }
+    return null;
+  }
 
   Future<void> login(BuildContext context) async {
     if (!loginFormKey.currentState!.validate()) return;
@@ -30,27 +37,28 @@ class LoginProvider extends ChangeNotifier {
 
     try {
       final Map<String, dynamic> loginData = {
-        "name": nameCtrl.text.trim(),
+        "email": emailCtrl.text.trim().toLowerCase(),
         "password": passwordCtrl.text,
       };
-
-      print("Attempting login for: ${nameCtrl.text.trim()}");
 
       final response = await _httpService.addItem(
         endpointUrl: "users/login",
         itemData: loginData,
       );
 
-      print("Response status: ${response.statusCode}");
-      print("Response body: ${response.body}");
-
       if (response.isOk && response.body != null) {
         final body = response.body;
 
         if (body["success"] == true && body["data"] != null) {
-          final String token = body["data"]["token"];
-          final userJson = body["data"]["user"];
-          
+          final data = body["data"];
+          final String? token = data["token"] ?? data["accessToken"];
+          final userJson = data["user"] ?? data;
+
+          if (token == null) {
+            SnackBarHelper.showErrorSnackBar("Token not found in response");
+            return;
+          }
+
           final loginUser = User.fromJson(userJson);
 
           if (loginUser.role != 'admin' && loginUser.role != 'superadmin') {
@@ -58,7 +66,7 @@ class LoginProvider extends ChangeNotifier {
             return;
           }
 
-          await _box.write("token", token);
+          await _box.write(TOKEN, token);
           await _box.write("user", loginUser.toJson());
 
           SnackBarHelper.showSuccessSnackBar("Login successful");
@@ -69,11 +77,10 @@ class LoginProvider extends ChangeNotifier {
           SnackBarHelper.showErrorSnackBar(body["message"] ?? "Login failed");
         }
       } else {
-        String errorMsg = response.body?["message"] ?? "Server connection failed (CORS or Down)";
+        String errorMsg = response.body?["message"] ?? "Server error: ${response.statusCode}";
         SnackBarHelper.showErrorSnackBar(errorMsg);
       }
     } catch (e) {
-      print("Login Error: $e");
       SnackBarHelper.showErrorSnackBar("An error occurred: $e");
     } finally {
       isReadOnly = false;
@@ -82,9 +89,9 @@ class LoginProvider extends ChangeNotifier {
   }
 
   void logout() {
-    _box.remove("token");
+    _box.remove(TOKEN);
     _box.remove("user");
-    nameCtrl.clear();
+    emailCtrl.clear();
     passwordCtrl.clear();
     Get.offAllNamed(AppPages.LOGIN);
   }

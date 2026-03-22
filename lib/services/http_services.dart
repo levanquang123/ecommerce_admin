@@ -12,7 +12,7 @@ class HttpService extends GetConnect {
     
     httpClient.baseUrl = MAIN_URL;
     httpClient.addRequestModifier<dynamic>((request) {
-      final token = _box.read('token');
+      final token = _box.read(TOKEN);
       if (token != null) {
         request.headers['Authorization'] = 'Bearer $token';
       }
