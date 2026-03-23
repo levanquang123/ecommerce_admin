@@ -496,7 +496,7 @@ class DataProvider extends ChangeNotifier {
       final lowerKeyword = keyword.toLowerCase();
       _filteredOrders = _allOrders.where((order) {
         bool nameMatches =
-            (order.userID?.name ?? '').toLowerCase().contains(lowerKeyword);
+            (order.userID?.email ?? '').toLowerCase().contains(lowerKeyword);
         bool statusMatches =
             (order.orderStatus ?? '').toLowerCase().contains(lowerKeyword);
         return nameMatches || statusMatches;

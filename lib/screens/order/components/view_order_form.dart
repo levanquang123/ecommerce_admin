@@ -41,8 +41,8 @@ class OrderSubmitForm extends StatelessWidget {
                 children: [
                   Expanded(
                       child: formRow(
-                          'Name:',
-                          Text(order?.userID?.name ?? 'N/A',
+                          'Email:',
+                          Text(order?.userID?.email ?? 'N/A',
                               style: TextStyle(fontSize: 16)))),
                   Expanded(
                       child: formRow(

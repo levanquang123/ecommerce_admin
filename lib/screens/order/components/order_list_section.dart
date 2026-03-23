@@ -38,7 +38,7 @@ class OrderListSection extends StatelessWidget {
                   // minWidth: 600,
                   columns: [
                     DataColumn(
-                      label: Text("Customer Name"),
+                      label: Text("Customer Email"),
                     ),
                     DataColumn(
                       label: Text("Order Amount"),
@@ -94,7 +94,7 @@ DataRow orderDataRow(Order orderInfo, int index, {Function? edit, Function? dele
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
-              child: Text(orderInfo.userID?.name ?? ''),
+              child: Text(orderInfo.userID?.email ?? ''),
             ),
           ],
         ),

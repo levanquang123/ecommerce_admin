@@ -36,8 +36,9 @@ class Order {
           ? OrderTotal.fromJson(json['orderTotal'])
           : null,
       sId: json['_id'],
-      userID:
-      json['userID'] != null ? UserID.fromJson(json['userID']) : null,
+      userID: json['userID'] != null && json['userID'] is Map
+          ? UserID.fromJson(json['userID'])
+          : (json['userID'] is String ? UserID(sId: json['userID']) : null),
       orderStatus: json['orderStatus'],
       items: json['items'] != null
           ? List<Items>.from(
@@ -83,22 +84,23 @@ class ShippingAddress {
   final String? postalCode;
   final String? country;
 
-  const ShippingAddress(
-      {this.phone,
-      this.street,
-      this.city,
-      this.state,
-      this.postalCode,
-      this.country});
+  const ShippingAddress({
+    this.phone,
+    this.street,
+    this.city,
+    this.state,
+    this.postalCode,
+    this.country,
+  });
 
   factory ShippingAddress.fromJson(Map<String, dynamic> json) {
     return ShippingAddress(
-      phone: json['phone'],
-      street: json['street'],
-      city: json['city'],
-      state: json['state'],
-      postalCode: json['postalCode'],
-      country: json['country'],
+      phone: json['phone']?.toString(),
+      street: json['street']?.toString(),
+      city: json['city']?.toString(),
+      state: json['state']?.toString(),
+      postalCode: json['postalCode']?.toString(),
+      country: json['country']?.toString(),
     );
   }
 
@@ -140,23 +142,23 @@ class OrderTotal {
 
 class UserID {
   final String? sId;
-  final String? name;
+  final String? email;
   final String? role;
 
-  const UserID({this.sId, this.name, this.role});
+  const UserID({this.sId, this.email, this.role});
 
   factory UserID.fromJson(Map<String, dynamic> json) {
     return UserID(
-      sId: json['_id'],
-      name: json['name'],
-      role: json['role'],
+      sId: json['_id']?.toString(),
+      email: json['email']?.toString(),
+      role: json['role']?.toString(),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       '_id': sId,
-      'name': name,
+      'email': email,
       'role': role,
     };
   }
@@ -170,22 +172,23 @@ class Items {
   final String? variant;
   final String? sId;
 
-  const Items(
-      {this.productID,
-      this.productName,
-      this.quantity,
-      this.price,
-      this.variant,
-      this.sId});
+  const Items({
+    this.productID,
+    this.productName,
+    this.quantity,
+    this.price,
+    this.variant,
+    this.sId,
+  });
 
   factory Items.fromJson(Map<String, dynamic> json) {
     return Items(
-      productID: json['productID'],
-      productName: json['productName'],
-      quantity: json['quantity'],
+      productID: json['productID']?.toString(),
+      productName: json['productName']?.toString(),
+      quantity: json['quantity'] is int ? json['quantity'] : int.tryParse(json['quantity']?.toString() ?? '0'),
       price: json['price']?.toDouble(),
-      variant: json['variant'],
-      sId: json['_id'],
+      variant: json['variant']?.toString(),
+      sId: json['_id']?.toString(),
     );
   }
 
@@ -207,15 +210,19 @@ class CouponCode {
   final String? discountType;
   final int? discountAmount;
 
-  const CouponCode(
-      {this.sId, this.couponCode, this.discountType, this.discountAmount});
+  const CouponCode({
+    this.sId,
+    this.couponCode,
+    this.discountType,
+    this.discountAmount,
+  });
 
   factory CouponCode.fromJson(Map<String, dynamic> json) {
     return CouponCode(
-      sId: json['_id'],
-      couponCode: json['couponCode'],
-      discountType: json['discountType'],
-      discountAmount: json['discountAmount'],
+      sId: json['_id']?.toString(),
+      couponCode: json['couponCode']?.toString(),
+      discountType: json['discountType']?.toString(),
+      discountAmount: json['discountAmount'] is int ? json['discountAmount'] : int.tryParse(json['discountAmount']?.toString() ?? '0'),
     );
   }
 

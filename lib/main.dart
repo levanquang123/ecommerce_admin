@@ -23,6 +23,7 @@ import 'utility/constants.dart';
 final GlobalKey<ScaffoldMessengerState> messengerKey =
     GlobalKey<ScaffoldMessengerState>();
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
@@ -69,8 +70,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final box = GetStorage();
-    final String? token = box.read('token');
-    
+    final String? token = box.read(TOKEN);
+
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       navigatorKey: navigatorKey,
@@ -85,7 +86,8 @@ class MyApp extends StatelessWidget {
             .apply(bodyColor: Colors.white),
         canvasColor: secondaryColor,
       ),
-      initialRoute: (token != null && token.isNotEmpty) ? AppPages.HOME : AppPages.LOGIN,
+      initialRoute:
+          (token != null && token.isNotEmpty) ? AppPages.HOME : AppPages.LOGIN,
       unknownRoute: GetPage(name: '/notFound', page: () => MainScreen()),
       defaultTransition: Transition.cupertino,
       getPages: AppPages.routes,
