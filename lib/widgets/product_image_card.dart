@@ -79,7 +79,8 @@ class ProductImageCard extends StatelessWidget {
             ),
           ),
         ),
-        if ( imageFile != null && onRemoveImage != null)
+        if ((imageFile != null || (imageUrlForUpdateImage?.isNotEmpty ?? false)) &&
+            onRemoveImage != null)
           Positioned(
             top: 0,
             right: 0,

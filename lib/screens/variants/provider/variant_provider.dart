@@ -119,13 +119,11 @@ class VariantsProvider extends ChangeNotifier {
 
   Future<bool> deleteVariant(Variant variant) async {
     try {
-      SnackBarHelper.showLoadingSnackBar('Deleting variant...');
       final Response response = await service.deleteItem(
         endpointUrl: 'variants',
         itemId: variant.sId ?? '',
       );
 
-      SnackBarHelper.hideSnackBar();
       if (response.isOk) {
         final apiResponse = ApiResponse.fromJson(response.body, null);
 

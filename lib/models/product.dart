@@ -11,6 +11,7 @@ class Product {
   ProTypeRef? proVariantTypeId;
   List<String>? proVariantId;
   List<Images>? images;
+  List<ProductVariant>? variants;
   String? createdAt;
   String? updatedAt;
   int? iV;
@@ -28,6 +29,7 @@ class Product {
         this.proVariantTypeId,
         this.proVariantId,
         this.images,
+        this.variants,
         this.createdAt,
         this.updatedAt,
         this.iV});
@@ -37,8 +39,8 @@ class Product {
     name = json['name'];
     description = json['description'];
     quantity = json['quantity'];
-    price = json['price']?.toDouble();;
-    offerPrice = json['offerPrice']?.toDouble();;
+    price = json['price']?.toDouble();
+    offerPrice = json['offerPrice']?.toDouble();
     proCategoryId = json['proCategoryId'] != null
         ? new ProRef.fromJson(json['proCategoryId'])
         : null;
@@ -51,11 +53,19 @@ class Product {
     proVariantTypeId = json['proVariantTypeId'] != null
         ? new ProTypeRef.fromJson(json['proVariantTypeId'])
         : null;
-    proVariantId = json['proVariantId'].cast<String>();
+    proVariantId = (json['proVariantId'] as List?)
+        ?.map((e) => e.toString())
+        .toList();
     if (json['images'] != null) {
       images = <Images>[];
       json['images'].forEach((v) {
         images!.add(new Images.fromJson(v));
+      });
+    }
+    if (json['variants'] != null) {
+      variants = <ProductVariant>[];
+      json['variants'].forEach((v) {
+        variants!.add(ProductVariant.fromJson(v));
       });
     }
     createdAt = json['createdAt'];
@@ -86,6 +96,9 @@ class Product {
     data['proVariantId'] = this.proVariantId;
     if (this.images != null) {
       data['images'] = this.images!.map((v) => v.toJson()).toList();
+    }
+    if (this.variants != null) {
+      data['variants'] = this.variants!.map((v) => v.toJson()).toList();
     }
     data['createdAt'] = this.createdAt;
     data['updatedAt'] = this.updatedAt;
@@ -153,5 +166,148 @@ class Images {
     return data;
   }
 
+}
+
+class ProductVariant {
+  String? sId;
+  String sku;
+  List<ProductVariantAttribute> attributes;
+  double price;
+  double? offerPrice;
+  int quantity;
+  List<VariantImage> images;
+  bool isActive;
+
+  ProductVariant({
+    this.sId,
+    required this.sku,
+    required this.attributes,
+    required this.price,
+    this.offerPrice,
+    required this.quantity,
+    required this.images,
+    this.isActive = true,
+  });
+
+  factory ProductVariant.fromJson(Map<String, dynamic> json) {
+    final rawAttributes = json['attributes'];
+    List<ProductVariantAttribute> parsedAttributes = [];
+
+    if (rawAttributes is List) {
+      parsedAttributes = rawAttributes
+          .map((item) => ProductVariantAttribute.fromJson(
+              Map<String, dynamic>.from(item as Map<dynamic, dynamic>)))
+          .toList();
+    }
+
+    final rawImages = json['images'];
+    List<VariantImage> parsedImages = [];
+    if (rawImages is List) {
+      parsedImages = rawImages
+          .map((item) => VariantImage.fromJson(
+              Map<String, dynamic>.from(item as Map<dynamic, dynamic>)))
+          .toList();
+    }
+
+    return ProductVariant(
+      sId: json['_id'],
+      sku: (json['sku'] ?? '').toString(),
+      attributes: parsedAttributes,
+      price: (json['price'] as num?)?.toDouble() ?? 0,
+      offerPrice: (json['offerPrice'] as num?)?.toDouble(),
+      quantity: (json['quantity'] as num?)?.toInt() ?? 0,
+      images: parsedImages,
+      isActive: json['isActive'] ?? true,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      if (sId != null) '_id': sId,
+      'sku': sku,
+      'attributes': attributes.map((e) => e.toJson()).toList(),
+      'price': price,
+      'offerPrice': offerPrice,
+      'quantity': quantity,
+      'images': images.map((e) => e.toJson()).toList(),
+      'isActive': isActive,
+    };
+  }
+}
+
+class ProductVariantAttribute {
+  VariantNode? variantType;
+  VariantNode? variant;
+
+  ProductVariantAttribute({
+    this.variantType,
+    this.variant,
+  });
+
+  factory ProductVariantAttribute.fromJson(Map<String, dynamic> json) {
+    return ProductVariantAttribute(
+      variantType: VariantNode.fromAny(json['variantTypeId']),
+      variant: VariantNode.fromAny(json['variantId']),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'variantTypeId': variantType?.sId,
+      'variantId': variant?.sId,
+    };
+  }
+}
+
+class VariantNode {
+  String? sId;
+  String? name;
+  String? type;
+
+  VariantNode({
+    this.sId,
+    this.name,
+    this.type,
+  });
+
+  factory VariantNode.fromAny(dynamic value) {
+    if (value == null) return VariantNode();
+    if (value is String) {
+      return VariantNode(sId: value);
+    }
+    if (value is Map) {
+      final map = Map<String, dynamic>.from(value as Map<dynamic, dynamic>);
+      return VariantNode(
+        sId: map['_id']?.toString(),
+        name: map['name']?.toString(),
+        type: map['type']?.toString(),
+      );
+    }
+    return VariantNode();
+  }
+}
+
+class VariantImage {
+  int image;
+  String url;
+
+  VariantImage({
+    required this.image,
+    required this.url,
+  });
+
+  factory VariantImage.fromJson(Map<String, dynamic> json) {
+    return VariantImage(
+      image: (json['image'] as num?)?.toInt() ?? 1,
+      url: (json['url'] ?? '').toString(),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'image': image,
+      'url': url,
+    };
+  }
 }
 
