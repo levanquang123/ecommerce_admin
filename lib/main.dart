@@ -18,6 +18,7 @@ import 'screens/posters/provider/poster_provider.dart';
 import 'screens/sub_category/provider/sub_category_provider.dart';
 import 'screens/variants/provider/variant_provider.dart';
 import 'screens/variants_type/provider/variant_type_provider.dart';
+import 'services/auth_session_service.dart';
 import 'utility/constants.dart';
 
 final GlobalKey<ScaffoldMessengerState> messengerKey =
@@ -27,6 +28,7 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await GetStorage.init();
+  final bool isAuthenticated = await AuthSessionService.instance.bootstrapSession();
   runApp(
     ChangeNotifierProvider(
       create: (context) => DataProvider()..init(),
@@ -58,7 +60,7 @@ void main() async {
               ChangeNotifierProvider(
                   create: (context) => NotificationProvider(dataProvider)),
             ],
-            child: MyApp(),
+            child: MyApp(initialAuthenticated: isAuthenticated),
           );
         },
       ),
@@ -67,11 +69,12 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
+  final bool initialAuthenticated;
+
+  const MyApp({super.key, required this.initialAuthenticated});
+
   @override
   Widget build(BuildContext context) {
-    final box = GetStorage();
-    final String? token = box.read(TOKEN);
-
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       navigatorKey: navigatorKey,
@@ -86,8 +89,7 @@ class MyApp extends StatelessWidget {
             .apply(bodyColor: Colors.white),
         canvasColor: secondaryColor,
       ),
-      initialRoute:
-          (token != null && token.isNotEmpty) ? AppPages.HOME : AppPages.LOGIN,
+      initialRoute: initialAuthenticated ? AppPages.HOME : AppPages.LOGIN,
       unknownRoute: GetPage(name: '/notFound', page: () => MainScreen()),
       defaultTransition: Transition.cupertino,
       getPages: AppPages.routes,

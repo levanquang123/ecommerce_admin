@@ -63,9 +63,9 @@ class ProfileCard extends StatelessWidget {
               ),
             ),
           ],
-          onSelected: (value) {
+          onSelected: (value) async {
             if (value == 1) {
-              loginProvider.logout();
+              await loginProvider.logout();
             }
           },
           child: Container(
