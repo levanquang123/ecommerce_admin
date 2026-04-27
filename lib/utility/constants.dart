@@ -9,6 +9,7 @@ const REFRESH_TOKEN = "REFRESH_TOKEN";
 const TOKEN_TYPE = "TOKEN_TYPE";
 const ACCESS_TOKEN_EXPIRES_IN = "ACCESS_TOKEN_EXPIRES_IN";
 const USER_KEY = "user";
-const MAIN_URL = 'https://api.levanquang.com/';
-
-// const MAIN_URL = "http://localhost:3000/";
+const MAIN_URL = String.fromEnvironment(
+  'MAIN_URL',
+  defaultValue: 'https://api.levanquang.com/',
+);

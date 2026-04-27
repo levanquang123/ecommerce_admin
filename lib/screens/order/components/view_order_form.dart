@@ -63,6 +63,7 @@ class OrderSubmitForm extends StatelessWidget {
                       hintText: 'Status',
                       initialValue: orderProvider.selectedOrderStatus,
                       items: [
+                        'pending_payment',
                         'pending',
                         'processing',
                         'shipped',
@@ -197,6 +198,10 @@ class OrderSubmitForm extends StatelessWidget {
           formRow(
               'Payment Method:',
               Text(order?.paymentMethod ?? 'N/A',
+                  style: TextStyle(fontSize: 16))),
+          formRow(
+              'Payment Status:',
+              Text(order?.paymentStatus ?? 'N/A',
                   style: TextStyle(fontSize: 16))),
           formRow(
               'Coupon Code:',
