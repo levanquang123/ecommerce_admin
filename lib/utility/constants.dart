@@ -11,5 +11,5 @@ const ACCESS_TOKEN_EXPIRES_IN = "ACCESS_TOKEN_EXPIRES_IN";
 const USER_KEY = "user";
 const MAIN_URL = String.fromEnvironment(
   'MAIN_URL',
-  defaultValue: 'https://api.levanquang.com/',
+  defaultValue: 'http://localhost:3000/',
 );
