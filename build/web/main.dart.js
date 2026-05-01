@@ -57794,7 +57794,7 @@ qx(a,b){return this.au7(a,b)},
 au7(a,b){var s=0,r=A.v(t.k8),q,p=2,o=[],n=[],m=this,l,k,j,i,h,g,f,e,d,c
 var $async$qx=A.q(function(a0,a1){if(a0===1){o.push(a1)
 s=p}for(;;)switch(s){case 0:d=A.b4V()
-d.x="https://api.levanquang.com"
+d.x="https://api.levanquang.com/"
 d.ax=B.il
 l=d
 k=A.aDU("POST "+a,"http.client",null,!0,null,null,null,null,null,null)
@@ -57955,7 +57955,7 @@ s=d!=null&&d.length!==0?2:3
 break
 case 2:q=5
 g=A.b4V()
-g.x="https://api.levanquang.com"
+g.x="https://api.levanquang.com/"
 g.ax=B.il
 m=g
 l=A.aDU("POST users/logout","http.client",null,!0,null,null,null,null,null,null)
@@ -58039,7 +58039,7 @@ q=o.c
 a.bw("status_code",B.f.j(q))
 p=o.d.i(0,"x-request-id")
 if(p!=null&&p.length!==0)a.bw("request_id",p)
-a.tp("http",A.a4(["url","https://api.levanquang.com"+s,"method",r,"request_id",p,"status_code",q],t.N,t.X))},
+a.tp("http",A.a4(["url","https://api.levanquang.com/"+s,"method",r,"request_id",p,"status_code",q],t.N,t.X))},
 $S:29}
 A.aeC.prototype={
 $1(a){a.bw("service","admin-web")
@@ -58048,7 +58048,7 @@ a.bw("endpoint","users/logout")
 a.bw("method","POST")},
 $S:29}
 A.Vj.prototype={
-agP(){var s=this,r="https://api.levanquang.com"
+agP(){var s=this,r="https://api.levanquang.com/"
 s.x=r
 s.ax=B.il
 s.grz().b=r
