@@ -1,5 +1,6 @@
 import '../../../models/order.dart';
 import '../../../utility/constants.dart';
+import '../../../utility/currency_formatter.dart';
 import '../../../utility/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
@@ -25,7 +26,7 @@ class OrderSubmitForm extends StatelessWidget {
           borderRadius: BorderRadius.circular(12.0),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               spreadRadius: 5,
               blurRadius: 7,
               offset: Offset(0, 3),
@@ -174,7 +175,7 @@ class OrderSubmitForm extends StatelessWidget {
         border: Border.all(color: Colors.blueAccent),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
+            color: Colors.grey.withValues(alpha: 0.2),
             spreadRadius: 1,
             blurRadius: 3,
             offset: Offset(0, 1),
@@ -209,17 +210,15 @@ class OrderSubmitForm extends StatelessWidget {
                   style: TextStyle(fontSize: 16))),
           formRow(
               'Order Sub Total:',
-              Text(
-                  '\$${order?.orderTotal?.subtotal?.toStringAsFixed(2) ?? 'N/A'}',
+              Text(formatUsd(order?.orderTotal?.subtotal),
                   style: TextStyle(fontSize: 16))),
           formRow(
               'Discount:',
-              Text(
-                  '\$${order?.orderTotal?.discount?.toStringAsFixed(2) ?? 'N/A'}',
+              Text(formatUsd(order?.orderTotal?.discount),
                   style: TextStyle(fontSize: 16, color: Colors.red))),
           formRow(
               'Grand Total:',
-              Text('\$${order?.orderTotal?.total?.toStringAsFixed(2) ?? 'N/A'}',
+              Text(formatUsd(order?.orderTotal?.total),
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
         ],
       ),
@@ -235,7 +234,7 @@ class OrderSubmitForm extends StatelessWidget {
         border: Border.all(color: Colors.blueAccent),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
+            color: Colors.grey.withValues(alpha: 0.2),
             spreadRadius: 1,
             blurRadius: 3,
             offset: Offset(0, 1),
@@ -260,7 +259,7 @@ class OrderSubmitForm extends StatelessWidget {
           SizedBox(height: defaultPadding),
           formRow(
             'Total Price:',
-            Text('\$${order?.totalPrice?.toStringAsFixed(2) ?? 'N/A'}',
+            Text(formatUsd(order?.totalPrice),
                 style: TextStyle(fontSize: 16, color: Colors.green)),
           ),
         ],
@@ -281,7 +280,7 @@ class OrderSubmitForm extends StatelessWidget {
         return Padding(
           padding: EdgeInsets.only(bottom: 4.0),
           child: Text(
-              '${item.productName}: ${item.quantity} x \$${item.price?.toStringAsFixed(2)}',
+              '${item.productName}: ${item.quantity} x ${formatUsd(item.price)}',
               style: TextStyle(fontSize: 16)),
         );
       },

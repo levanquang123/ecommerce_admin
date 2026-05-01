@@ -6,6 +6,7 @@ import 'add_product_form.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../utility/constants.dart';
+import '../../../utility/currency_formatter.dart';
 
 class ProductListSection extends StatelessWidget {
   const ProductListSection({
@@ -104,7 +105,7 @@ DataRow productDataRow(Product productInfo,
       DataCell(Text(productInfo.proCategoryId?.name ?? '')),
       DataCell(Text(productInfo.proSubCategoryId?.name ?? '')),
       DataCell(
-        Text('${productInfo.price}'),
+        Text(formatUsd(productInfo.price)),
       ),
       DataCell(IconButton(
           onPressed: () {
