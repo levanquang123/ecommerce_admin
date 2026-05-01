@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -179,10 +180,72 @@ void main() async {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   final bool initialAuthenticated;
 
   const MyApp({super.key, required this.initialAuthenticated});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+  static const Duration _sessionKeepAliveInterval = Duration(minutes: 8);
+
+  Timer? _sessionKeepAliveTimer;
+  bool _isRefreshingSession = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _startSessionKeepAlive();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _sessionKeepAliveTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _startSessionKeepAlive();
+      _refreshSession();
+      return;
+    }
+
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached ||
+        state == AppLifecycleState.hidden) {
+      _sessionKeepAliveTimer?.cancel();
+      _sessionKeepAliveTimer = null;
+    }
+  }
+
+  void _startSessionKeepAlive() {
+    _sessionKeepAliveTimer?.cancel();
+    _sessionKeepAliveTimer = Timer.periodic(
+      _sessionKeepAliveInterval,
+      (_) => _refreshSession(),
+    );
+  }
+
+  Future<void> _refreshSession() async {
+    final refreshToken = AuthSessionService.instance.refreshToken;
+    if (refreshToken == null || refreshToken.isEmpty) return;
+
+    if (_isRefreshingSession) return;
+    _isRefreshingSession = true;
+    try {
+      await AuthSessionService.instance.refreshSession();
+    } finally {
+      _isRefreshingSession = false;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -201,7 +264,8 @@ class MyApp extends StatelessWidget {
             .apply(bodyColor: Colors.white),
         canvasColor: secondaryColor,
       ),
-      initialRoute: initialAuthenticated ? AppPages.HOME : AppPages.LOGIN,
+      initialRoute:
+          widget.initialAuthenticated ? AppPages.HOME : AppPages.LOGIN,
       unknownRoute: GetPage(name: '/notFound', page: () => MainScreen()),
       defaultTransition: Transition.cupertino,
       getPages: AppPages.routes,
