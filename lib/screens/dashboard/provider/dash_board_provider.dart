@@ -14,6 +14,7 @@ import '../../../core/data/data_provider.dart';
 import '../../../models/category.dart';
 import '../../../services/http_services.dart';
 import '../../../models/product.dart';
+import '../../../utility/image_multipart.dart';
 import '../../../utility/snack_bar_helper.dart';
 
 class DashBoardProvider extends ChangeNotifier {
@@ -564,15 +565,7 @@ class DashBoardProvider extends ChangeNotifier {
       final imgXFile = entry.value;
       if (imgXFile == null) continue;
 
-      if (kIsWeb) {
-        final fileName = imgXFile.name;
-        final byteImg = await imgXFile.readAsBytes();
-        formData[field] = MultipartFile(byteImg, filename: fileName);
-      } else {
-        final filePath = imgXFile.path;
-        final fileName = filePath.split('/').last;
-        formData[field] = await MultipartFile(filePath, filename: fileName);
-      }
+      formData[field] = await imageMultipartFileFromXFile(imgXFile);
     }
     return FormData(formData);
   }
