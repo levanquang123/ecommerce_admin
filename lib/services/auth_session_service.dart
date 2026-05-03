@@ -81,6 +81,31 @@ class AuthSessionService {
     return DateTime.now().add(skew).isAfter(expiresAt);
   }
 
+  bool get isAccessTokenExpiredOrExpiring {
+    final token = accessToken;
+    if (token == null || token.isEmpty) {
+      return true;
+    }
+    return _isJwtExpired(token, skew: const Duration(seconds: 30));
+  }
+
+  Future<bool> ensureValidAccessToken() async {
+    final currentRefreshToken = refreshToken;
+    if (currentRefreshToken == null || currentRefreshToken.isEmpty) {
+      return false;
+    }
+
+    if (_isJwtExpired(currentRefreshToken)) {
+      return false;
+    }
+
+    if (!isAccessTokenExpiredOrExpiring) {
+      return true;
+    }
+
+    return refreshSession();
+  }
+
   bool _storedRefreshTokenChanged(String previousRefreshToken) {
     final latestRefreshToken = refreshToken;
     return latestRefreshToken != null &&
