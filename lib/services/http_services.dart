@@ -194,21 +194,17 @@ class HttpService extends GetConnect {
     required String endpointUrl,
     required String method,
     required Future<Response<dynamic>> Function() requestCall,
+    bool allowAuthRetryOn401 = true,
   }) async {
-    if (_shouldTryRefresh(endpointUrl)) {
-      final hasValidToken = await _authSessionService.ensureValidAccessToken();
-      if (!hasValidToken) {
-        log('[AUTH] Pre-request token validation failed, sending request anyway');
-      }
-    }
-
     Response<dynamic> response = await _traceRequestAttempt(
       endpointUrl: endpointUrl,
       method: method,
       requestCall: requestCall,
     );
 
-    if (response.statusCode == 401 && _shouldTryRefresh(endpointUrl)) {
+    if (allowAuthRetryOn401 &&
+        response.statusCode == 401 &&
+        _shouldTryRefresh(endpointUrl)) {
       final refreshed = await _authSessionService.refreshSession();
       if (refreshed) {
         response = await _traceRequestAttempt(

@@ -123,6 +123,17 @@ class AuthSessionService {
         message.contains('session expired');
   }
 
+  bool _shouldClearSessionAfterRefreshFailure(Response<dynamic> response) {
+    final statusCode = response.statusCode ?? 0;
+    if (statusCode == 401) {
+      return true;
+    }
+    if (statusCode == 400 && _isExplicitInvalidRefreshResponse(response)) {
+      return true;
+    }
+    return false;
+  }
+
   Future<void> _setSentryUserContext(User? user) async {
     await Sentry.configureScope((scope) async {
       if (user == null) {
@@ -349,8 +360,7 @@ class AuthSessionService {
         completer.complete(true);
         return true;
       }
-      if (response.statusCode == 401 &&
-          _isExplicitInvalidRefreshResponse(response)) {
+      if (_shouldClearSessionAfterRefreshFailure(response)) {
         await clearSessionAndRedirectToLogin();
       }
       completer.complete(false);

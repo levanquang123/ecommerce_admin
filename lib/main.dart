@@ -241,7 +241,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     if (_isRefreshingSession) return;
     _isRefreshingSession = true;
     try {
-      await AuthSessionService.instance.refreshSession();
+      await AuthSessionService.instance.ensureValidAccessToken();
     } finally {
       _isRefreshingSession = false;
     }
