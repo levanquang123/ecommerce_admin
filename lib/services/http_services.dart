@@ -198,11 +198,7 @@ class HttpService extends GetConnect {
     if (_shouldTryRefresh(endpointUrl)) {
       final hasValidToken = await _authSessionService.ensureValidAccessToken();
       if (!hasValidToken) {
-        await _authSessionService.clearSessionAndRedirectToLogin();
-        return Response(
-          body: {'message': 'Session expired. Please login again.'},
-          statusCode: 401,
-        );
+        log('[AUTH] Pre-request token validation failed, sending request anyway');
       }
     }
 

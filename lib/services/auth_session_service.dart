@@ -113,6 +113,16 @@ class AuthSessionService {
         latestRefreshToken != previousRefreshToken;
   }
 
+  bool _isExplicitInvalidRefreshResponse(Response<dynamic> response) {
+    final body = response.body;
+    if (body is! Map) return false;
+    final message = body['message']?.toString().toLowerCase() ?? '';
+    return message.contains('invalid or expired refresh token') ||
+        message.contains('refresh token expired') ||
+        message.contains('refresh token is required') ||
+        message.contains('session expired');
+  }
+
   Future<void> _setSentryUserContext(User? user) async {
     await Sentry.configureScope((scope) async {
       if (user == null) {
@@ -339,8 +349,10 @@ class AuthSessionService {
         completer.complete(true);
         return true;
       }
-
-      await clearSessionAndRedirectToLogin();
+      if (response.statusCode == 401 &&
+          _isExplicitInvalidRefreshResponse(response)) {
+        await clearSessionAndRedirectToLogin();
+      }
       completer.complete(false);
       return false;
     } catch (error) {
@@ -349,8 +361,6 @@ class AuthSessionService {
         completer.complete(true);
         return true;
       }
-
-      await clearSessionAndRedirectToLogin();
       completer.complete(false);
       return false;
     } finally {
