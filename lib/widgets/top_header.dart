@@ -1,4 +1,3 @@
-import 'package:admin/utility/extensions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
@@ -86,7 +85,8 @@ class ProfileCard extends StatelessWidget {
                   height: 38,
                 ),
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: defaultPadding / 2),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: defaultPadding / 2),
                   child: Text(user?.email ?? "Admin"),
                 ),
                 const Icon(Icons.keyboard_arrow_down),

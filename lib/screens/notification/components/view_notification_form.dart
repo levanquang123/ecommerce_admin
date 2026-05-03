@@ -16,9 +16,7 @@ class ViewNotificationForm extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var size = MediaQuery
-        .of(context)
-        .size;
+    var size = MediaQuery.of(context).size;
     context.notificationProvider.getNotificationInfo(notification);
     return SingleChildScrollView(
       child: Container(
@@ -29,7 +27,7 @@ class ViewNotificationForm extends StatelessWidget {
           borderRadius: BorderRadius.circular(12.0),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               spreadRadius: 5,
               blurRadius: 7,
               offset: Offset(0, 3),
@@ -42,7 +40,8 @@ class ViewNotificationForm extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(notification?.title ?? 'N/A', style: TextStyle(fontSize: 16)),
+                Text(notification?.title ?? 'N/A',
+                    style: TextStyle(fontSize: 16)),
               ],
             ),
             Gap(10),
@@ -56,17 +55,26 @@ class ViewNotificationForm extends StatelessWidget {
               ),
               child: Consumer<NotificationProvider>(
                 builder: (context, notificationProvider, child) {
-                  int totalSend = notificationProvider.notificationResult?.successDelivery ?? 0;
-                  int totalOpened = notificationProvider.notificationResult?.openedNotification ?? 0;
-                  int totalFailed = notificationProvider.notificationResult?.failedDelivery ?? 0;
-                  int totalError = notificationProvider.notificationResult?.erroredDelivery ?? 0;
-                  double calculatePercentage(int notificationCount){
-                    if(totalSend == 0){
+                  int totalSend = notificationProvider
+                          .notificationResult?.successDelivery ??
+                      0;
+                  int totalOpened = notificationProvider
+                          .notificationResult?.openedNotification ??
+                      0;
+                  int totalFailed =
+                      notificationProvider.notificationResult?.failedDelivery ??
+                          0;
+                  int totalError = notificationProvider
+                          .notificationResult?.erroredDelivery ??
+                      0;
+                  double calculatePercentage(int notificationCount) {
+                    if (totalSend == 0) {
                       return 0;
-                    }else{
+                    } else {
                       return (notificationCount / totalSend) * 100;
                     }
                   }
+
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -104,7 +112,8 @@ class ViewNotificationForm extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: secondaryColor),
+                  style:
+                      ElevatedButton.styleFrom(backgroundColor: secondaryColor),
                   onPressed: () => Navigator.of(context).pop(),
                   child: const Text('Cancel'),
                 ),
@@ -118,13 +127,16 @@ class ViewNotificationForm extends StatelessWidget {
 }
 
 // How to show the order popup
-void viewNotificationStatics(BuildContext context, MyNotification? notification) {
+void viewNotificationStatics(
+    BuildContext context, MyNotification? notification) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
         backgroundColor: bgColor,
-        title: Center(child: Text('Notification Statics'.toUpperCase(), style: TextStyle(color: primaryColor))),
+        title: Center(
+            child: Text('Notification Statics'.toUpperCase(),
+                style: TextStyle(color: primaryColor))),
         content: ViewNotificationForm(notification: notification),
       );
     },

@@ -52,21 +52,20 @@ class CouponCodeProvider extends ChangeNotifier {
       );
 
       if (response.isOk) {
-        ApiResponse apiResponse =
-        ApiResponse.fromJson(response.body, null);
+        ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
 
         if (apiResponse.success == true) {
           clearFields();
           _dataProvider.getAllCoupons();
 
           SnackBarHelper.showSuccessSnackBar(
-            apiResponse.message ?? 'Coupon added successfully',
+            apiResponse.message,
           );
 
           return true;
         } else {
           SnackBarHelper.showErrorSnackBar(
-            apiResponse.message ?? 'Failed to add coupon',
+            apiResponse.message,
           );
           return false;
         }
@@ -119,7 +118,7 @@ class CouponCodeProvider extends ChangeNotifier {
         if (apiResponse.success == true) {
           clearFields();
           _dataProvider.getAllCoupons();
-          SnackBarHelper.showSuccessSnackBar(apiResponse.message ?? "Updated");
+          SnackBarHelper.showSuccessSnackBar(apiResponse.message);
           return true;
         } else {
           SnackBarHelper.showErrorSnackBar(
@@ -160,7 +159,7 @@ class CouponCodeProvider extends ChangeNotifier {
           SnackBarHelper.showSuccessSnackBar('Coupon Deleted Successfully');
           _dataProvider.getAllCoupons();
         } else {
-          SnackBarHelper.showErrorSnackBar(apiResponse.message ?? 'Delete failed');
+          SnackBarHelper.showErrorSnackBar(apiResponse.message);
         }
       } else {
         SnackBarHelper.showErrorSnackBar(

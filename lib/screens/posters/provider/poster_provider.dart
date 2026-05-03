@@ -38,10 +38,10 @@ class PosterProvider extends ChangeNotifier {
       };
 
       final FormData form =
-      await createFormData(imgXFile: imgXFile, formData: formDataMap);
+          await createFormData(imgXFile: imgXFile, formData: formDataMap);
 
       final response =
-      await service.addItem(endpointUrl: "posters", itemData: form);
+          await service.addItem(endpointUrl: "posters", itemData: form);
 
       SnackBarHelper.hideSnackBar();
       if (response.isOk) {
@@ -82,7 +82,7 @@ class PosterProvider extends ChangeNotifier {
       };
 
       FormData formData =
-      await createFormData(imgXFile: imgXFile, formData: formDataMap);
+          await createFormData(imgXFile: imgXFile, formData: formDataMap);
 
       SnackBarHelper.hideSnackBar();
       final response = await service.updateItem(
@@ -96,7 +96,7 @@ class PosterProvider extends ChangeNotifier {
 
         if (apiResponse.success == true) {
           clearFields();
-          SnackBarHelper.showSuccessSnackBar(apiResponse.message ?? "Updated");
+          SnackBarHelper.showSuccessSnackBar(apiResponse.message);
           _dataProvider.getAllPosters();
           return true;
         } else {
@@ -148,8 +148,7 @@ class PosterProvider extends ChangeNotifier {
           SnackBarHelper.showSuccessSnackBar('Poster Deleted Successfully');
           _dataProvider.getAllPosters();
         } else {
-          SnackBarHelper.showErrorSnackBar(
-              apiResponse.message ?? "Failed to delete poster");
+          SnackBarHelper.showErrorSnackBar(apiResponse.message);
         }
       } else {
         SnackBarHelper.showErrorSnackBar(

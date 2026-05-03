@@ -3,11 +3,11 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../../utility/constants.dart';
 import '../../../models/product_summery_info.dart';
 
-
 class ProductSummeryCard extends StatelessWidget {
   const ProductSummeryCard({
     Key? key,
-    required this.info, required this.onTap,
+    required this.info,
+    required this.onTap,
   }) : super(key: key);
 
   final ProductSummeryInfo info;
@@ -16,7 +16,7 @@ class ProductSummeryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: (){
+      onTap: () {
         onTap(info.title);
       },
       child: Container(
@@ -37,7 +37,7 @@ class ProductSummeryCard extends StatelessWidget {
                   height: 40,
                   width: 40,
                   decoration: BoxDecoration(
-                    color: info.color!.withOpacity(0.1),
+                    color: info.color!.withValues(alpha: 0.1),
                     borderRadius: const BorderRadius.all(Radius.circular(10)),
                   ),
                   child: SvgPicture.asset(
@@ -95,7 +95,7 @@ class ProgressLine extends StatelessWidget {
           width: double.infinity,
           height: 5,
           decoration: BoxDecoration(
-            color: color!.withOpacity(0.1),
+            color: color!.withValues(alpha: 0.1),
             borderRadius: BorderRadius.all(Radius.circular(10)),
           ),
         ),

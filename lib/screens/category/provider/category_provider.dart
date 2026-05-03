@@ -29,7 +29,8 @@ class CategoryProvider extends ChangeNotifier {
         return false;
       }
 
-      SnackBarHelper.showLoadingSnackBar('Adding category and uploading image...');
+      SnackBarHelper.showLoadingSnackBar(
+          'Adding category and uploading image...');
 
       Map<String, dynamic> formDataMap = {
         "name": categoryNameCtrl.text,
@@ -92,7 +93,7 @@ class CategoryProvider extends ChangeNotifier {
 
         if (apiResponse.success == true) {
           clearFields();
-          SnackBarHelper.showSuccessSnackBar(apiResponse.message ?? "Updated");
+          SnackBarHelper.showSuccessSnackBar(apiResponse.message);
           _dataProvider.getAllCategory();
           return true;
         } else {

@@ -1,6 +1,5 @@
 import 'dart:developer';
 import 'package:flutter/cupertino.dart';
-import 'package:get/get.dart';
 
 import '../../../core/data/data_provider.dart';
 import '../../../models/api_response.dart';

@@ -54,25 +54,20 @@ class Chart extends StatelessWidget {
   }
 
   List<PieChartSectionData> _buildPieChartSelectionData(BuildContext context) {
-    final DataProvider dataProvider = Provider.of<DataProvider>(context);
-
-    int totalOrder =
-    context.dataProvider.calculateOrdersWithStatus();
-
     int pendingOrder =
-    context.dataProvider.calculateOrdersWithStatus(status: 'pending');
+        context.dataProvider.calculateOrdersWithStatus(status: 'pending');
 
     int processingOrder =
-    context.dataProvider.calculateOrdersWithStatus(status: 'processing');
+        context.dataProvider.calculateOrdersWithStatus(status: 'processing');
 
     int cancelledOrder =
-    context.dataProvider.calculateOrdersWithStatus(status: 'cancelled');
+        context.dataProvider.calculateOrdersWithStatus(status: 'cancelled');
 
     int shippedOrder =
-    context.dataProvider.calculateOrdersWithStatus(status: 'shipped');
+        context.dataProvider.calculateOrdersWithStatus(status: 'shipped');
 
     int deliveredOrder =
-    context.dataProvider.calculateOrdersWithStatus(status: 'delivered');
+        context.dataProvider.calculateOrdersWithStatus(status: 'delivered');
 
     List<PieChartSectionData> pieChartSelectionData = [
       PieChartSectionData(

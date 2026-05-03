@@ -81,6 +81,13 @@ class AuthSessionService {
     return DateTime.now().add(skew).isAfter(expiresAt);
   }
 
+  bool _storedRefreshTokenChanged(String previousRefreshToken) {
+    final latestRefreshToken = refreshToken;
+    return latestRefreshToken != null &&
+        latestRefreshToken.isNotEmpty &&
+        latestRefreshToken != previousRefreshToken;
+  }
+
   Future<void> _setSentryUserContext(User? user) async {
     await Sentry.configureScope((scope) async {
       if (user == null) {
@@ -303,11 +310,21 @@ class AuthSessionService {
         }
       }
 
+      if (_storedRefreshTokenChanged(currentRefreshToken)) {
+        completer.complete(true);
+        return true;
+      }
+
       await clearSessionAndRedirectToLogin();
       completer.complete(false);
       return false;
     } catch (error) {
       log('[AUTH] Refresh failed: $error');
+      if (_storedRefreshTokenChanged(currentRefreshToken)) {
+        completer.complete(true);
+        return true;
+      }
+
       await clearSessionAndRedirectToLogin();
       completer.complete(false);
       return false;

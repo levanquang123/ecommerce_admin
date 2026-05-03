@@ -18,21 +18,21 @@ class Product {
 
   Product(
       {this.sId,
-        this.name,
-        this.description,
-        this.quantity,
-        this.price,
-        this.offerPrice,
-        this.proCategoryId,
-        this.proSubCategoryId,
-        this.proBrandId,
-        this.proVariantTypeId,
-        this.proVariantId,
-        this.images,
-        this.variants,
-        this.createdAt,
-        this.updatedAt,
-        this.iV});
+      this.name,
+      this.description,
+      this.quantity,
+      this.price,
+      this.offerPrice,
+      this.proCategoryId,
+      this.proSubCategoryId,
+      this.proBrandId,
+      this.proVariantTypeId,
+      this.proVariantId,
+      this.images,
+      this.variants,
+      this.createdAt,
+      this.updatedAt,
+      this.iV});
 
   Product.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
@@ -53,9 +53,8 @@ class Product {
     proVariantTypeId = json['proVariantTypeId'] != null
         ? new ProTypeRef.fromJson(json['proVariantTypeId'])
         : null;
-    proVariantId = (json['proVariantId'] as List?)
-        ?.map((e) => e.toString())
-        .toList();
+    proVariantId =
+        (json['proVariantId'] as List?)?.map((e) => e.toString()).toList();
     if (json['images'] != null) {
       images = <Images>[];
       json['images'].forEach((v) {
@@ -165,7 +164,6 @@ class Images {
     data['_id'] = this.sId;
     return data;
   }
-
 }
 
 class ProductVariant {
@@ -276,7 +274,7 @@ class VariantNode {
       return VariantNode(sId: value);
     }
     if (value is Map) {
-      final map = Map<String, dynamic>.from(value as Map<dynamic, dynamic>);
+      final map = Map<String, dynamic>.from(value);
       return VariantNode(
         sId: map['_id']?.toString(),
         name: map['name']?.toString(),
@@ -310,4 +308,3 @@ class VariantImage {
     };
   }
 }
-
