@@ -447,6 +447,7 @@ class DashBoardProvider extends ChangeNotifier {
         'offerPrice': fallbackStock.offerPrice,
         'quantity': fallbackStock.quantity,
         'variants': jsonEncode(built.variants),
+        'removeImages': jsonEncode(removedProductImageNumbers.toList()..sort()),
       };
 
       if (selectedBrand?.sId != null && selectedBrand!.sId!.isNotEmpty) {
