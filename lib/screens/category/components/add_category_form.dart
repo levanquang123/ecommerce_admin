@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:provider/provider.dart';
 import '../../../utility/constants.dart';
+import '../../../utility/snack_bar_helper.dart';
 import '../../../widgets/category_image_card.dart';
 import '../../../widgets/custom_text_field.dart';
 
@@ -65,6 +66,7 @@ class CategorySubmitForm extends StatelessWidget {
                       backgroundColor: secondaryColor,
                     ),
                     onPressed: () {
+                      SnackBarHelper.hideSnackBar();
                       Navigator.of(context).pop();
                     },
                     child: Text('Cancel'),
@@ -83,7 +85,7 @@ class CategorySubmitForm extends StatelessWidget {
                             .categoryProvider.addCategoryFormKey.currentState!
                             .save();
                         bool success =
-                        await context.categoryProvider.submitCategory();
+                            await context.categoryProvider.submitCategory();
 
                         if (success) {
                           Navigator.of(context).pop();
@@ -106,6 +108,7 @@ class CategorySubmitForm extends StatelessWidget {
 void showAddCategoryForm(BuildContext context, Category? category) {
   showDialog(
     context: context,
+    barrierDismissible: false,
     builder: (BuildContext context) {
       return AlertDialog(
         backgroundColor: bgColor,
