@@ -103,10 +103,12 @@ class AuthSessionService {
   Future<bool> ensureValidAccessToken() async {
     final currentRefreshToken = refreshToken;
     if (currentRefreshToken == null || currentRefreshToken.isEmpty) {
+      await clearSessionAndRedirectToLogin();
       return false;
     }
 
     if (_isJwtExpired(currentRefreshToken)) {
+      await clearSessionAndRedirectToLogin();
       return false;
     }
 

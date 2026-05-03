@@ -207,6 +207,16 @@ class HttpService extends GetConnect {
     required Future<Response<dynamic>> Function() requestCall,
     bool allowAuthRetryOn401 = true,
   }) async {
+    if (_shouldTryRefresh(endpointUrl)) {
+      final hasValidToken = await _authSessionService.ensureValidAccessToken();
+      if (!hasValidToken) {
+        return Response(
+          body: {'message': 'Session expired. Please login again.'},
+          statusCode: 401,
+        );
+      }
+    }
+
     Response<dynamic> response = await _traceRequestAttempt(
       endpointUrl: endpointUrl,
       method: method,
