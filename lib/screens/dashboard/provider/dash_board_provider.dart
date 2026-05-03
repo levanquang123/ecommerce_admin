@@ -45,6 +45,7 @@ class DashBoardProvider extends ChangeNotifier {
       thirdImgXFile,
       fourthImgXFile,
       fifthImgXFile;
+  final Set<int> removedProductImageNumbers = {};
 
   List<SubCategory> subCategoriesByCategory = [];
   List<Brand> brandsBySubCategory = [];
@@ -369,6 +370,7 @@ class DashBoardProvider extends ChangeNotifier {
         'offerPrice': fallbackStock.offerPrice,
         'quantity': fallbackStock.quantity,
         'variants': jsonEncode(built.variants),
+        'removeImages': jsonEncode(removedProductImageNumbers.toList()..sort()),
       };
 
       if (selectedBrand?.sId != null && selectedBrand!.sId!.isNotEmpty) {
@@ -536,6 +538,7 @@ class DashBoardProvider extends ChangeNotifier {
     final ImagePicker picker = ImagePicker();
     final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
+      removedProductImageNumbers.remove(imageCardNumber);
       if (imageCardNumber == 1) {
         selectedMainImage = File(image.path);
         mainImgXFile = image;
@@ -554,6 +557,34 @@ class DashBoardProvider extends ChangeNotifier {
       }
       notifyListeners();
     }
+  }
+
+  void removeProductImage(int imageNumber) {
+    removedProductImageNumbers.add(imageNumber);
+    if (imageNumber == 1) {
+      selectedMainImage = null;
+      mainImgXFile = null;
+    } else if (imageNumber == 2) {
+      selectedSecondImage = null;
+      secondImgXFile = null;
+    } else if (imageNumber == 3) {
+      selectedThirdImage = null;
+      thirdImgXFile = null;
+    } else if (imageNumber == 4) {
+      selectedFourthImage = null;
+      fourthImgXFile = null;
+    } else if (imageNumber == 5) {
+      selectedFifthImage = null;
+      fifthImgXFile = null;
+    }
+    notifyListeners();
+  }
+
+  String? productImageUrlForUpdate(int imageNumber) {
+    if (removedProductImageNumbers.contains(imageNumber)) return null;
+    return productForUpdate?.images
+        ?.firstWhereOrNull((image) => image.image == imageNumber)
+        ?.url;
   }
 
   Future<FormData> createFormDataForMultipleImage({
@@ -608,6 +639,7 @@ class DashBoardProvider extends ChangeNotifier {
   void setDataForUpdateProduct(Product? product) {
     if (product != null) {
       productForUpdate = product;
+      removedProductImageNumbers.clear();
 
       productNameCtrl.text = product.name ?? '';
       productDescCtrl.text = product.description ?? '';
@@ -630,8 +662,8 @@ class DashBoardProvider extends ChangeNotifier {
           .where((brand) =>
               brand.subCategoryId?.sId == product.proSubCategoryId?.sId)
           .toList();
-      selectedBrand = _dataProvider.brands
-          .firstWhereOrNull((element) => element.sId == product.proBrandId?.sId);
+      selectedBrand = _dataProvider.brands.firstWhereOrNull(
+          (element) => element.sId == product.proBrandId?.sId);
 
       final productVariants = product.variants ?? [];
       for (final variant in variantForms) {
@@ -645,7 +677,8 @@ class DashBoardProvider extends ChangeNotifier {
           variantForms.add(
             VariantFormData.fromProductVariant(
               variant,
-              attributesFromCatalog: _mapAttributesFromProduct(variant.attributes),
+              attributesFromCatalog:
+                  _mapAttributesFromProduct(variant.attributes),
             ),
           );
         }
@@ -699,6 +732,7 @@ class DashBoardProvider extends ChangeNotifier {
     variantOptions = [];
 
     productForUpdate = null;
+    removedProductImageNumbers.clear();
 
     subCategoriesByCategory = [];
     brandsBySubCategory = [];
@@ -738,7 +772,8 @@ class DashBoardProvider extends ChangeNotifier {
       }
 
       final offerText = variant.offerPriceCtrl.text.trim();
-      final offer = offerText.isEmpty ? null : _toPositiveOrZeroDouble(offerText);
+      final offer =
+          offerText.isEmpty ? null : _toPositiveOrZeroDouble(offerText);
       if (offerText.isNotEmpty && offer == null) {
         return 'Variant #${i + 1}: Offer price is invalid.';
       }
@@ -779,7 +814,6 @@ class DashBoardProvider extends ChangeNotifier {
         return 'Duplicate attribute combination at variant #${i + 1}.';
       }
       attributeCombinationSet.add(attributesKey);
-
     }
 
     return null;
@@ -814,11 +848,15 @@ class DashBoardProvider extends ChangeNotifier {
     final variants = <Map<String, dynamic>>[];
     final files = <String, XFile>{};
 
-    for (int variantIndex = 0; variantIndex < variantForms.length; variantIndex++) {
+    for (int variantIndex = 0;
+        variantIndex < variantForms.length;
+        variantIndex++) {
       final variant = variantForms[variantIndex];
       final images = <Map<String, dynamic>>[];
 
-      for (int imageIndex = 0; imageIndex < variant.images.length; imageIndex++) {
+      for (int imageIndex = 0;
+          imageIndex < variant.images.length;
+          imageIndex++) {
         final image = variant.images[imageIndex];
         final existingUrl = (image.existingUrl ?? '').trim();
         if (existingUrl.isNotEmpty) {
@@ -830,7 +868,8 @@ class DashBoardProvider extends ChangeNotifier {
         }
 
         if (image.selectedXFile != null) {
-          final fieldName = 'variantImage_${variantIndex + 1}_${imageIndex + 1}';
+          final fieldName =
+              'variantImage_${variantIndex + 1}_${imageIndex + 1}';
           files[fieldName] = image.selectedXFile!;
           images.add({
             'image': imageIndex + 1,
@@ -921,8 +960,8 @@ class DashBoardProvider extends ChangeNotifier {
       final variantId = entry.variant?.sId;
       final type = _dataProvider.variantTypes
           .firstWhereOrNull((variantType) => variantType.sId == typeId);
-      final variant =
-          _dataProvider.variants.firstWhereOrNull((item) => item.sId == variantId);
+      final variant = _dataProvider.variants
+          .firstWhereOrNull((item) => item.sId == variantId);
 
       rows.add(
         AttributeFormData(
@@ -944,8 +983,7 @@ class DashBoardProvider extends ChangeNotifier {
             '${item['variantTypeId'] ?? ''}:${item['variantId'] ?? ''}')
         .toList()
       ..sort((a, b) => a.compareTo(b));
-    return entries
-        .join('|');
+    return entries.join('|');
   }
 
   List<VariantOptionFormData> _buildOptionsFromVariants(
@@ -1076,10 +1114,9 @@ class VariantFormData {
       attributeRows.add(AttributeFormData());
     }
 
-    final variantImages =
-        variant.images
-            .map((image) => VariantImageFormData(existingUrl: image.url))
-            .toList();
+    final variantImages = variant.images
+        .map((image) => VariantImageFormData(existingUrl: image.url))
+        .toList();
     if (variantImages.isEmpty) {
       variantImages.add(VariantImageFormData());
     }

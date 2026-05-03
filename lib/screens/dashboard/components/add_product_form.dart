@@ -79,10 +79,11 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> {
                         child: CustomDropdown(
                           key: ValueKey(dashProvider.selectedCategory?.sId),
                           initialValue: dashProvider.selectedCategory,
-                          hintText:
-                              dashProvider.selectedCategory?.name ?? 'Select category',
+                          hintText: dashProvider.selectedCategory?.name ??
+                              'Select category',
                           items: context.dataProvider.categories,
-                          displayItem: (Category? category) => category?.name ?? '',
+                          displayItem: (Category? category) =>
+                              category?.name ?? '',
                           onChanged: (newValue) {
                             if (newValue != null) {
                               dashProvider.filterSubCategory(newValue);
@@ -99,8 +100,8 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> {
                       Expanded(
                         child: CustomDropdown(
                           key: ValueKey(dashProvider.selectedSubCategory?.sId),
-                          hintText:
-                              dashProvider.selectedSubCategory?.name ?? 'Sub category',
+                          hintText: dashProvider.selectedSubCategory?.name ??
+                              'Sub category',
                           items: dashProvider.subCategoriesByCategory,
                           initialValue: dashProvider.selectedSubCategory,
                           displayItem: (SubCategory? subCategory) =>
@@ -123,7 +124,8 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> {
                           key: ValueKey(dashProvider.selectedBrand?.sId),
                           initialValue: dashProvider.selectedBrand,
                           items: dashProvider.brandsBySubCategory,
-                          hintText: dashProvider.selectedBrand?.name ?? 'Select Brand',
+                          hintText: dashProvider.selectedBrand?.name ??
+                              'Select Brand',
                           displayItem: (Brand? brand) => brand?.name ?? '',
                           onChanged: (newValue) {
                             dashProvider.selectedBrand = newValue;
@@ -147,8 +149,10 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> {
                     },
                   ),
                   const SizedBox(height: defaultPadding / 2),
-                  if (!dashProvider.useVariants) _buildLegacyPriceFields(dashProvider),
-                  if (dashProvider.useVariants) _buildVariantsSection(dashProvider),
+                  if (!dashProvider.useVariants)
+                    _buildLegacyPriceFields(dashProvider),
+                  if (dashProvider.useVariants)
+                    _buildVariantsSection(dashProvider),
                   const SizedBox(height: defaultPadding),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -170,14 +174,14 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> {
                           backgroundColor: primaryColor,
                         ),
                         onPressed: () async {
-                          final formState =
-                              context.dashBoardProvider.addProductFormKey.currentState;
+                          final formState = context
+                              .dashBoardProvider.addProductFormKey.currentState;
 
                           if (formState == null) return;
                           if (!formState.validate()) return;
 
-                          final validationError =
-                              context.dashBoardProvider.validateVariantBusinessRules();
+                          final validationError = context.dashBoardProvider
+                              .validateVariantBusinessRules();
                           if (validationError != null) {
                             SnackBarHelper.showErrorSnackBar(validationError);
                             return;
@@ -211,57 +215,37 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> {
         ProductImageCard(
           labelText: 'Main Image',
           imageFile: dashProvider.selectedMainImage,
-          imageUrlForUpdateImage: widget.product?.images.safeElementAt(0)?.url,
+          imageUrlForUpdateImage: dashProvider.productImageUrlForUpdate(1),
           onTap: () => dashProvider.pickImage(imageCardNumber: 1),
-          onRemoveImage: () {
-            dashProvider.selectedMainImage = null;
-            dashProvider.mainImgXFile = null;
-            dashProvider.updateUI();
-          },
+          onRemoveImage: () => dashProvider.removeProductImage(1),
         ),
         ProductImageCard(
           labelText: 'Second image',
           imageFile: dashProvider.selectedSecondImage,
-          imageUrlForUpdateImage: widget.product?.images.safeElementAt(1)?.url,
+          imageUrlForUpdateImage: dashProvider.productImageUrlForUpdate(2),
           onTap: () => dashProvider.pickImage(imageCardNumber: 2),
-          onRemoveImage: () {
-            dashProvider.selectedSecondImage = null;
-            dashProvider.secondImgXFile = null;
-            dashProvider.updateUI();
-          },
+          onRemoveImage: () => dashProvider.removeProductImage(2),
         ),
         ProductImageCard(
           labelText: 'Third image',
           imageFile: dashProvider.selectedThirdImage,
-          imageUrlForUpdateImage: widget.product?.images.safeElementAt(2)?.url,
+          imageUrlForUpdateImage: dashProvider.productImageUrlForUpdate(3),
           onTap: () => dashProvider.pickImage(imageCardNumber: 3),
-          onRemoveImage: () {
-            dashProvider.selectedThirdImage = null;
-            dashProvider.thirdImgXFile = null;
-            dashProvider.updateUI();
-          },
+          onRemoveImage: () => dashProvider.removeProductImage(3),
         ),
         ProductImageCard(
           labelText: 'Fourth image',
           imageFile: dashProvider.selectedFourthImage,
-          imageUrlForUpdateImage: widget.product?.images.safeElementAt(3)?.url,
+          imageUrlForUpdateImage: dashProvider.productImageUrlForUpdate(4),
           onTap: () => dashProvider.pickImage(imageCardNumber: 4),
-          onRemoveImage: () {
-            dashProvider.selectedFourthImage = null;
-            dashProvider.fourthImgXFile = null;
-            dashProvider.updateUI();
-          },
+          onRemoveImage: () => dashProvider.removeProductImage(4),
         ),
         ProductImageCard(
           labelText: 'Fifth image',
           imageFile: dashProvider.selectedFifthImage,
-          imageUrlForUpdateImage: widget.product?.images.safeElementAt(4)?.url,
+          imageUrlForUpdateImage: dashProvider.productImageUrlForUpdate(5),
           onTap: () => dashProvider.pickImage(imageCardNumber: 5),
-          onRemoveImage: () {
-            dashProvider.selectedFifthImage = null;
-            dashProvider.fifthImgXFile = null;
-            dashProvider.updateUI();
-          },
+          onRemoveImage: () => dashProvider.removeProductImage(5),
         ),
       ],
     );
@@ -385,7 +369,8 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> {
                 children: [
                   Expanded(
                     child: CustomDropdown<VariantType>(
-                      key: ValueKey('option-type-$index-${option.selectedType?.sId}'),
+                      key: ValueKey(
+                          'option-type-$index-${option.selectedType?.sId}'),
                       initialValue: option.selectedType,
                       items: context.dataProvider.variantTypes,
                       hintText: 'Option Type',
@@ -399,8 +384,8 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> {
                       items: values,
                       selectedItems: option.selectedValues,
                       displayItem: (item) => item.name ?? '',
-                      onSelectionChanged: (selected) =>
-                          dashProvider.updateVariantOptionValues(index, selected),
+                      onSelectionChanged: (selected) => dashProvider
+                          .updateVariantOptionValues(index, selected),
                     ),
                   ),
                   IconButton(
@@ -432,9 +417,11 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> {
 
   Widget _buildVariantCombinationsSection(DashBoardProvider dashProvider) {
     final total = dashProvider.variantForms.length;
-    final active = dashProvider.variantForms.where((item) => item.isActive).length;
+    final active =
+        dashProvider.variantForms.where((item) => item.isActive).length;
     final outOfStock = dashProvider.variantForms
-        .where((item) => (int.tryParse(item.quantityCtrl.text.trim()) ?? 0) <= 0)
+        .where(
+            (item) => (int.tryParse(item.quantityCtrl.text.trim()) ?? 0) <= 0)
         .length;
 
     return Column(
@@ -626,28 +613,29 @@ class _ProductSubmitFormState extends State<ProductSubmitForm> {
                             ? () => provider.addVariantImageField(variantIndex)
                             : null,
                         icon: const Icon(Icons.add),
-                        label: Text(canAddMore
-                            ? 'Add image'
-                            : 'Max 3 images reached'),
+                        label: Text(
+                            canAddMore ? 'Add image' : 'Max 3 images reached'),
                       ),
                     ),
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
-                      children: List.generate(variant.images.length, (imageIndex) {
+                      children:
+                          List.generate(variant.images.length, (imageIndex) {
                         final image = variant.images[imageIndex];
                         return SizedBox(
                           width: 170,
                           child: ProductImageCard(
                             labelText: 'Image #${imageIndex + 1}',
-                        imageFile: image.selectedFile,
-                        imageUrlForUpdateImage:
-                            image.previewUrl ?? image.existingUrl,
+                            imageFile: image.selectedFile,
+                            imageUrlForUpdateImage:
+                                image.previewUrl ?? image.existingUrl,
                             onTap: () => provider.pickVariantImage(
                               variantIndex: variantIndex,
                               imageIndex: imageIndex,
                             ),
-                            onRemoveImage: () => provider.removeVariantImageField(
+                            onRemoveImage: () =>
+                                provider.removeVariantImageField(
                               variantIndex,
                               imageIndex,
                             ),

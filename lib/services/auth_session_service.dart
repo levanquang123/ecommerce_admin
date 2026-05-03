@@ -283,7 +283,10 @@ class AuthSessionService {
   }
 
   Future<Response<dynamic>> _postWithoutAuthHeader(
-      String endpoint, dynamic body) async {
+    String endpoint,
+    dynamic body, {
+    Map<String, String> extraHeaders = const {},
+  }) async {
     final client = GetConnect()
       ..baseUrl = MAIN_URL
       ..timeout = const Duration(seconds: 30);
@@ -299,7 +302,11 @@ class AuthSessionService {
 
     try {
       final headers = _buildRequestHeaders(
-          baseHeaders: const {'Content-Type': 'application/json'});
+        baseHeaders: {
+          'Content-Type': 'application/json',
+          ...extraHeaders,
+        },
+      );
 
       final response = await client.post(
         endpoint,
@@ -345,6 +352,7 @@ class AuthSessionService {
       final response = await _postWithoutAuthHeader(
         'users/refresh-token',
         {'refreshToken': currentRefreshToken},
+        extraHeaders: {'x-refresh-token': currentRefreshToken},
       );
 
       if (response.isOk &&
