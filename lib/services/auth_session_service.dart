@@ -4,6 +4,7 @@ import 'dart:developer';
 
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:http/http.dart' as http;
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uuid/uuid.dart';
 
@@ -294,16 +295,17 @@ class AuthSessionService {
     }
   }
 
-  Future<Response<dynamic>> _postWithoutAuthHeader(
+  Uri _apiUri(String endpoint) {
+    final base = MAIN_URL.replaceAll(RegExp(r'/$'), '');
+    final path = endpoint.startsWith('/') ? endpoint : '/$endpoint';
+    return Uri.parse('$base$path');
+  }
+
+  Future<Response<dynamic>> _postJsonWithoutAuthHeader(
     String endpoint,
-    dynamic body, {
+    Map<String, dynamic> body, {
     Map<String, String> extraHeaders = const {},
   }) async {
-    final client = GetConnect()
-      ..baseUrl = MAIN_URL
-      ..httpClient.baseUrl = MAIN_URL
-      ..timeout = const Duration(seconds: 30);
-
     final transaction = Sentry.startTransaction(
       'POST $endpoint',
       'http.client',
@@ -316,15 +318,35 @@ class AuthSessionService {
     try {
       final headers = _buildRequestHeaders(
         baseHeaders: {
-          'Content-Type': 'application/json',
+          'content-type': 'application/json',
+          'accept': 'application/json',
           ...extraHeaders,
         },
       );
 
-      final response = await client.post(
-        endpoint,
-        body,
-        headers: headers,
+      final rawResponse = await http
+          .post(
+            _apiUri(endpoint),
+            headers: headers,
+            body: jsonEncode(body),
+          )
+          .timeout(
+            const Duration(seconds: 30),
+          );
+
+      dynamic decodedBody;
+      try {
+        decodedBody =
+            rawResponse.body.isEmpty ? null : jsonDecode(rawResponse.body);
+      } catch (_) {
+        decodedBody = rawResponse.body;
+      }
+
+      final response = Response<dynamic>(
+        body: decodedBody,
+        statusCode: rawResponse.statusCode,
+        statusText: rawResponse.reasonPhrase,
+        headers: rawResponse.headers,
       );
 
       await _captureAuthHttpFailure(
@@ -362,9 +384,10 @@ class AuthSessionService {
     _refreshCompleter = completer;
 
     try {
-      final response = await _postWithoutAuthHeader(
+      final response = await _postJsonWithoutAuthHeader(
         'users/refresh-token',
         {'refreshToken': currentRefreshToken},
+        extraHeaders: {'x-refresh-token': currentRefreshToken},
       );
 
       if (response.isOk &&
