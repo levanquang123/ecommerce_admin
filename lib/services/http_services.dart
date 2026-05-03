@@ -13,13 +13,24 @@ class HttpService extends GetConnect {
   final AuthSessionService _authSessionService = AuthSessionService.instance;
   final Uuid _uuid = const Uuid();
 
+  String? _readToken(String key) {
+    final value = _box.read(key);
+    if (value == null) return null;
+
+    final token = value.toString().trim();
+    if (token.isEmpty || token == 'null' || token == 'undefined') {
+      return null;
+    }
+    return token;
+  }
+
   HttpService() {
     baseUrl = MAIN_URL;
     timeout = const Duration(seconds: 30);
     httpClient.baseUrl = MAIN_URL;
 
     httpClient.addRequestModifier<dynamic>((request) async {
-      final token = _box.read(TOKEN)?.toString();
+      final token = _readToken(TOKEN);
       final requestPath = request.url.path;
       request.headers['x-client-type'] = 'web_admin';
       request.headers['x-request-id'] = _uuid.v4();

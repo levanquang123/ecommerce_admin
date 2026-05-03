@@ -22,8 +22,19 @@ class AuthSessionService {
   Completer<bool>? _refreshCompleter;
   bool _isNavigatingToLogin = false;
 
-  String? get accessToken => _box.read(TOKEN)?.toString();
-  String? get refreshToken => _box.read(REFRESH_TOKEN)?.toString();
+  String? _readToken(String key) {
+    final value = _box.read(key);
+    if (value == null) return null;
+
+    final token = value.toString().trim();
+    if (token.isEmpty || token == 'null' || token == 'undefined') {
+      return null;
+    }
+    return token;
+  }
+
+  String? get accessToken => _readToken(TOKEN);
+  String? get refreshToken => _readToken(REFRESH_TOKEN);
 
   User? get currentUser {
     final rawUser = _box.read(USER_KEY);
