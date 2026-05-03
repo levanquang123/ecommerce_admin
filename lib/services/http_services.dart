@@ -76,6 +76,18 @@ class HttpService extends GetConnect {
     return !_isAuthFreeEndpoint(endpointUrl);
   }
 
+  bool _isTokenUnauthorized(Response<dynamic> response) {
+    final body = response.body;
+    if (body is Map) {
+      final message = body['message']?.toString().toLowerCase() ?? '';
+      return message.contains('authorization token missing') ||
+          message.contains('invalid or expired token') ||
+          message.contains('invalid token type') ||
+          message.contains('session expired');
+    }
+    return false;
+  }
+
   Map<String, dynamic> _summarizeResponseBody(dynamic body) {
     if (body == null) {
       return {'type': 'null'};
@@ -213,7 +225,7 @@ class HttpService extends GetConnect {
       }
     }
 
-    if (response.statusCode == 401) {
+    if (response.statusCode == 401 && _isTokenUnauthorized(response)) {
       await _authSessionService.clearSessionAndRedirectToLogin();
     }
 
