@@ -301,6 +301,7 @@ class AuthSessionService {
   }) async {
     final client = GetConnect()
       ..baseUrl = MAIN_URL
+      ..httpClient.baseUrl = MAIN_URL
       ..timeout = const Duration(seconds: 30);
 
     final transaction = Sentry.startTransaction(
@@ -364,7 +365,6 @@ class AuthSessionService {
       final response = await _postWithoutAuthHeader(
         'users/refresh-token',
         {'refreshToken': currentRefreshToken},
-        extraHeaders: {'x-refresh-token': currentRefreshToken},
       );
 
       if (response.isOk &&
