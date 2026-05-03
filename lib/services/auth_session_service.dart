@@ -12,6 +12,13 @@ import '../models/auth_session.dart';
 import '../models/user.dart';
 import '../utility/constants.dart';
 
+enum AuthTokenState {
+  valid,
+  refreshed,
+  invalidSession,
+  unavailable,
+}
+
 class AuthSessionService {
   AuthSessionService._();
 
@@ -19,7 +26,7 @@ class AuthSessionService {
 
   final GetStorage _box = GetStorage();
   final Uuid _uuid = const Uuid();
-  Completer<bool>? _refreshCompleter;
+  Completer<AuthTokenState>? _refreshCompleter;
   bool _isNavigatingToLogin = false;
 
   String? _readToken(String key) {
@@ -100,23 +107,28 @@ class AuthSessionService {
     return _isJwtExpired(token, skew: const Duration(seconds: 30));
   }
 
-  Future<bool> ensureValidAccessToken() async {
+  Future<AuthTokenState> ensureValidAccessTokenState() async {
     final currentRefreshToken = refreshToken;
     if (currentRefreshToken == null || currentRefreshToken.isEmpty) {
       await clearSessionAndRedirectToLogin();
-      return false;
+      return AuthTokenState.invalidSession;
     }
 
     if (_isJwtExpired(currentRefreshToken)) {
       await clearSessionAndRedirectToLogin();
-      return false;
+      return AuthTokenState.invalidSession;
     }
 
     if (!isAccessTokenExpiredOrExpiring) {
-      return true;
+      return AuthTokenState.valid;
     }
 
-    return refreshSession();
+    return refreshSessionState();
+  }
+
+  Future<bool> ensureValidAccessToken() async {
+    final state = await ensureValidAccessTokenState();
+    return state == AuthTokenState.valid || state == AuthTokenState.refreshed;
   }
 
   bool _storedRefreshTokenChanged(String previousRefreshToken) {
@@ -334,7 +346,7 @@ class AuthSessionService {
     }
   }
 
-  Future<bool> refreshSession() async {
+  Future<AuthTokenState> refreshSessionState() async {
     if (_refreshCompleter != null) {
       return _refreshCompleter!.future;
     }
@@ -342,10 +354,10 @@ class AuthSessionService {
     final currentRefreshToken = refreshToken;
     if (currentRefreshToken == null || currentRefreshToken.isEmpty) {
       await clearSessionAndRedirectToLogin();
-      return false;
+      return AuthTokenState.invalidSession;
     }
 
-    final completer = Completer<bool>();
+    final completer = Completer<AuthTokenState>();
     _refreshCompleter = completer;
 
     try {
@@ -371,32 +383,45 @@ class AuthSessionService {
               session.hasRefreshToken &&
               isRoleValid) {
             await saveSession(session);
-            completer.complete(true);
-            return true;
+            completer.complete(AuthTokenState.refreshed);
+            return AuthTokenState.refreshed;
+          }
+
+          if (!isRoleValid) {
+            await clearSessionAndRedirectToLogin();
+            completer.complete(AuthTokenState.invalidSession);
+            return AuthTokenState.invalidSession;
           }
         }
       }
 
       if (_storedRefreshTokenChanged(currentRefreshToken)) {
-        completer.complete(true);
-        return true;
+        completer.complete(AuthTokenState.refreshed);
+        return AuthTokenState.refreshed;
       }
       if (_shouldClearSessionAfterRefreshFailure(response)) {
         await clearSessionAndRedirectToLogin();
+        completer.complete(AuthTokenState.invalidSession);
+        return AuthTokenState.invalidSession;
       }
-      completer.complete(false);
-      return false;
+      completer.complete(AuthTokenState.unavailable);
+      return AuthTokenState.unavailable;
     } catch (error) {
       log('[AUTH] Refresh failed: $error');
       if (_storedRefreshTokenChanged(currentRefreshToken)) {
-        completer.complete(true);
-        return true;
+        completer.complete(AuthTokenState.refreshed);
+        return AuthTokenState.refreshed;
       }
-      completer.complete(false);
-      return false;
+      completer.complete(AuthTokenState.unavailable);
+      return AuthTokenState.unavailable;
     } finally {
       _refreshCompleter = null;
     }
+  }
+
+  Future<bool> refreshSession() async {
+    final state = await refreshSessionState();
+    return state == AuthTokenState.valid || state == AuthTokenState.refreshed;
   }
 
   Future<bool> bootstrapSession() async {

@@ -208,11 +208,21 @@ class HttpService extends GetConnect {
     bool allowAuthRetryOn401 = true,
   }) async {
     if (_shouldTryRefresh(endpointUrl)) {
-      final hasValidToken = await _authSessionService.ensureValidAccessToken();
-      if (!hasValidToken) {
+      final tokenState =
+          await _authSessionService.ensureValidAccessTokenState();
+      if (tokenState == AuthTokenState.invalidSession) {
         return Response(
           body: {'message': 'Session expired. Please login again.'},
           statusCode: 401,
+        );
+      }
+      if (tokenState == AuthTokenState.unavailable) {
+        return Response(
+          body: {
+            'message':
+                'Unable to refresh session. Please check your connection and try again.'
+          },
+          statusCode: 503,
         );
       }
     }
@@ -226,12 +236,21 @@ class HttpService extends GetConnect {
     if (allowAuthRetryOn401 &&
         response.statusCode == 401 &&
         _shouldTryRefresh(endpointUrl)) {
-      final refreshed = await _authSessionService.refreshSession();
-      if (refreshed) {
+      final refreshState = await _authSessionService.refreshSessionState();
+      if (refreshState == AuthTokenState.refreshed ||
+          refreshState == AuthTokenState.valid) {
         response = await _traceRequestAttempt(
           endpointUrl: endpointUrl,
           method: method,
           requestCall: requestCall,
+        );
+      } else if (refreshState == AuthTokenState.unavailable) {
+        return Response(
+          body: {
+            'message':
+                'Unable to refresh session. Please check your connection and try again.'
+          },
+          statusCode: 503,
         );
       } else {
         return response;
