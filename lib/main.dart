@@ -253,7 +253,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       debugShowCheckedModeBanner: false,
       navigatorKey: navigatorKey,
       scaffoldMessengerKey: messengerKey,
-      title: 'Flutter Admin Panel',
+      title: 'QMarket Admin',
       navigatorObservers: [SentryNavigatorObserver()],
       theme: ThemeData.dark().copyWith(
         snackBarTheme: const SnackBarThemeData(
