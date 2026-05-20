@@ -267,7 +267,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       initialRoute:
           widget.initialAuthenticated ? AppPages.HOME : AppPages.LOGIN,
       unknownRoute: GetPage(name: '/notFound', page: () => MainScreen()),
-      defaultTransition: Transition.cupertino,
+      defaultTransition: Transition.fadeIn,
+      transitionDuration: const Duration(milliseconds: 180),
       getPages: AppPages.routes,
     );
   }
