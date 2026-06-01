@@ -20,6 +20,8 @@ Thumbs.db
 .pub/
 build/**
 !build/web/
+!build/web/sitemap.xml
+!build/web/robots.txt
 
 # Flutter plugin files
 .flutter-plugins
