@@ -1,11 +1,11 @@
 {
-    "name": "QMarket Admin",
-    "short_name": "QMarket",
-    "start_url": ".",
+    "name": "QMarket Admin - Dashboard Quản Lý E-commerce",
+    "short_name": "QMarket Admin",
+    "start_url": "./",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "QMarket administration dashboard.",
+    "description": "QMarket Admin – Hệ thống quản lý sản phẩm, danh mục, đơn hàng, coupon, poster và thông báo đẩy cho ứng dụng mua sắm QMarket.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
