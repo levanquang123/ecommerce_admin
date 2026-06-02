@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import '../../../core/api/api_client.dart';
+import '../../../core/api/api_endpoints.dart';
 import '../../../core/data/data_provider.dart';
 import '../../../models/auth_session.dart';
 import '../../../models/user.dart';
 import '../../../services/auth_session_service.dart';
-import '../../../services/http_services.dart';
 import '../../../utility/snack_bar_helper.dart';
 import '../../../core/routes/app_pages.dart';
 import '../../../utility/constants.dart';
 
 class LoginProvider extends ChangeNotifier {
-  final HttpService _httpService = HttpService();
+  final ApiClient _apiClient;
   final AuthSessionService _authSessionService = AuthSessionService.instance;
   final DataProvider _dataProvider;
   final GetStorage _box = GetStorage();
@@ -22,7 +23,7 @@ class LoginProvider extends ChangeNotifier {
 
   bool isReadOnly = false;
 
-  LoginProvider(this._dataProvider);
+  LoginProvider(this._dataProvider, this._apiClient);
 
   User? get currentUser {
     final userData = _box.read(USER_KEY);
@@ -47,8 +48,8 @@ class LoginProvider extends ChangeNotifier {
         "password": passwordCtrl.text,
       };
 
-      final response = await _httpService.addItem(
-        endpointUrl: "users/login",
+      final response = await _apiClient.addItem(
+        endpointUrl: ApiEndpoints.usersLogin,
         itemData: loginData,
       );
 
@@ -106,5 +107,12 @@ class LoginProvider extends ChangeNotifier {
     emailCtrl.clear();
     passwordCtrl.clear();
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    emailCtrl.dispose();
+    passwordCtrl.dispose();
+    super.dispose();
   }
 }

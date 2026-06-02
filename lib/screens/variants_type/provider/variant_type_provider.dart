@@ -2,13 +2,12 @@ import 'dart:developer';
 import 'package:flutter/cupertino.dart';
 
 import '../../../core/data/data_provider.dart';
-import '../../../models/api_response.dart';
 import '../../../models/variant_type.dart';
-import '../../../services/http_services.dart';
 import '../../../utility/snack_bar_helper.dart';
+import '../data/variant_type_repository.dart';
 
 class VariantsTypeProvider extends ChangeNotifier {
-  HttpService service = HttpService();
+  final VariantTypeRepository _variantTypeRepository;
   final DataProvider _dataProvider;
 
   final addVariantsTypeFormKey = GlobalKey<FormState>();
@@ -17,7 +16,7 @@ class VariantsTypeProvider extends ChangeNotifier {
 
   VariantType? variantTypeForUpdate;
 
-  VariantsTypeProvider(this._dataProvider);
+  VariantsTypeProvider(this._dataProvider, this._variantTypeRepository);
 
   Future<bool> addVariantType() async {
     try {
@@ -26,27 +25,16 @@ class VariantsTypeProvider extends ChangeNotifier {
         'type': variantTypeCtrl.text.trim(),
       };
 
-      final response = await service.addItem(
-        endpointUrl: 'variantTypes',
-        itemData: variantType,
-      );
+      final apiResponse =
+          await _variantTypeRepository.createVariantType(variantType);
 
-      if (response.isOk) {
-        final apiResponse = ApiResponse.fromJson(response.body, null);
-
-        if (apiResponse.success == true) {
-          clearFields();
-          SnackBarHelper.showSuccessSnackBar(apiResponse.message);
-          _dataProvider.getAllVariantTypes();
-          return true;
-        } else {
-          SnackBarHelper.showErrorSnackBar(apiResponse.message);
-          return false;
-        }
+      if (apiResponse.success == true) {
+        clearFields();
+        SnackBarHelper.showSuccessSnackBar(apiResponse.message);
+        _dataProvider.getAllVariantTypes();
+        return true;
       } else {
-        SnackBarHelper.showErrorSnackBar(
-          response.body?['message'] ?? response.statusText,
-        );
+        SnackBarHelper.showErrorSnackBar(apiResponse.message);
         return false;
       }
     } catch (e) {
@@ -65,28 +53,18 @@ class VariantsTypeProvider extends ChangeNotifier {
         'type': variantTypeCtrl.text.trim(),
       };
 
-      final response = await service.updateItem(
-        endpointUrl: 'variantTypes',
-        itemData: variantType,
-        itemId: variantTypeForUpdate?.sId ?? '',
+      final apiResponse = await _variantTypeRepository.updateVariantType(
+        variantTypeId: variantTypeForUpdate?.sId ?? '',
+        data: variantType,
       );
 
-      if (response.isOk) {
-        final apiResponse = ApiResponse.fromJson(response.body, null);
-
-        if (apiResponse.success == true) {
-          clearFields();
-          SnackBarHelper.showSuccessSnackBar(apiResponse.message);
-          _dataProvider.getAllVariantTypes();
-          return true;
-        } else {
-          SnackBarHelper.showErrorSnackBar(apiResponse.message);
-          return false;
-        }
+      if (apiResponse.success == true) {
+        clearFields();
+        SnackBarHelper.showSuccessSnackBar(apiResponse.message);
+        _dataProvider.getAllVariantTypes();
+        return true;
       } else {
-        SnackBarHelper.showErrorSnackBar(
-          response.body?['message'] ?? response.statusText,
-        );
+        SnackBarHelper.showErrorSnackBar(apiResponse.message);
         return false;
       }
     } catch (e) {
@@ -98,22 +76,14 @@ class VariantsTypeProvider extends ChangeNotifier {
 
   Future<void> deleteVariantType(VariantType variantType) async {
     try {
-      final response = await service.deleteItem(
-        endpointUrl: 'variantTypes',
-        itemId: variantType.sId ?? '',
-      );
+      final apiResponse =
+          await _variantTypeRepository.deleteVariantType(variantType);
 
-      if (response.isOk) {
-        final apiResponse = ApiResponse.fromJson(response.body, null);
-
-        if (apiResponse.success == true) {
-          SnackBarHelper.showSuccessSnackBar(apiResponse.message);
-          _dataProvider.getAllVariantTypes();
-        }
+      if (apiResponse.success == true) {
+        SnackBarHelper.showSuccessSnackBar(apiResponse.message);
+        _dataProvider.getAllVariantTypes();
       } else {
-        SnackBarHelper.showErrorSnackBar(
-          response.body?['message'] ?? response.statusText,
-        );
+        SnackBarHelper.showErrorSnackBar(apiResponse.message);
       }
     } catch (e) {
       log(e.toString());
@@ -145,5 +115,12 @@ class VariantsTypeProvider extends ChangeNotifier {
     variantTypeCtrl.clear();
     variantTypeForUpdate = null;
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    variantNameCtrl.dispose();
+    variantTypeCtrl.dispose();
+    super.dispose();
   }
 }

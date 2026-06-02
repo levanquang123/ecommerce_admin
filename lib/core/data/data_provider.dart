@@ -1,78 +1,53 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
+import '../../models/category.dart';
 import '../../models/api_response.dart';
+import '../../models/brand.dart';
 import '../../models/coupon.dart';
 import '../../models/my_notification.dart';
 import '../../models/order.dart';
 import '../../models/poster.dart';
 import '../../models/product.dart';
-import '../../models/variant_type.dart';
-import '../../services/http_services.dart';
-import '../../utility/snack_bar_helper.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart' hide Category;
-import 'package:get/get.dart';
-import '../../../models/category.dart';
-import '../../models/brand.dart';
 import '../../models/sub_category.dart';
 import '../../models/variant.dart';
+import '../../models/variant_type.dart';
+import '../../utility/snack_bar_helper.dart';
+import '../api/api_client.dart';
+import '../api/api_endpoints.dart';
+import 'data_list_state.dart';
 
 class DataProvider extends ChangeNotifier {
-  HttpService service = HttpService();
+  final ApiClient service;
 
-  List<Category> _allCategories = [];
-  List<Category> _filteredCategories = [];
+  final DataListState<Category> _categories = DataListState<Category>();
+  final DataListState<SubCategory> _subCategories =
+      DataListState<SubCategory>();
+  final DataListState<Brand> _brands = DataListState<Brand>();
+  final DataListState<VariantType> _variantTypes =
+      DataListState<VariantType>();
+  final DataListState<Variant> _variants = DataListState<Variant>();
+  final DataListState<Product> _products = DataListState<Product>();
+  final DataListState<Coupon> _coupons = DataListState<Coupon>();
+  final DataListState<Poster> _posters = DataListState<Poster>();
+  final DataListState<Order> _orders = DataListState<Order>();
+  final DataListState<MyNotification> _notifications =
+      DataListState<MyNotification>();
 
-  List<Category> get categories => _filteredCategories;
-
-  List<SubCategory> _allSubCategories = [];
-  List<SubCategory> _filteredSubCategories = [];
-
-  List<SubCategory> get subCategories => _filteredSubCategories;
-
-  List<Brand> _allBrands = [];
-  List<Brand> _filteredBrands = [];
-
-  List<Brand> get brands => _filteredBrands;
-
-  List<VariantType> _allVariantTypes = [];
-  List<VariantType> _filteredVariantTypes = [];
-
-  List<VariantType> get variantTypes => _filteredVariantTypes;
-
-  List<Variant> _allVariants = [];
-  List<Variant> _filteredVariants = [];
-
-  List<Variant> get variants => _filteredVariants;
-
-  List<Product> _allProducts = [];
-  List<Product> _filteredProducts = [];
-
-  List<Product> get products => _filteredProducts;
-
-  List<Coupon> _allCoupons = [];
-  List<Coupon> _filteredCoupons = [];
-
-  List<Coupon> get coupons => _filteredCoupons;
-
-  List<Poster> _allPosters = [];
-  List<Poster> _filteredPosters = [];
-
-  List<Poster> get posters => _filteredPosters;
-
-  List<Order> _allOrders = [];
-  List<Order> _filteredOrders = [];
-
-  List<Order> get orders => _filteredOrders;
-
-  List<MyNotification> _allNotifications = [];
-  List<MyNotification> _filteredNotifications = [];
-
-  List<MyNotification> get notifications => _filteredNotifications;
-
-  DataProvider();
+  DataProvider(this.service);
 
   bool isLoading = false;
+
+  List<Category> get categories => _categories.filtered;
+  List<SubCategory> get subCategories => _subCategories.filtered;
+  List<Brand> get brands => _brands.filtered;
+  List<VariantType> get variantTypes => _variantTypes.filtered;
+  List<Variant> get variants => _variants.filtered;
+  List<Product> get products => _products.filtered;
+  List<Coupon> get coupons => _coupons.filtered;
+  List<Poster> get posters => _posters.filtered;
+  List<Order> get orders => _orders.filtered;
+  List<MyNotification> get notifications => _notifications.filtered;
 
   Future<void> init() async {
     isLoading = true;
@@ -96,463 +71,273 @@ class DataProvider extends ChangeNotifier {
   }
 
   Future<List<Category>> getAllCategory({bool showSnack = false}) async {
-    try {
-      Response response = await service.getItems(endpointUrl: "categories");
-      if (response.isOk) {
-        ApiResponse<List<Category>> apiResponse =
-            ApiResponse<List<Category>>.fromJson(
-                response.body,
-                (json) => (json as List)
-                    .map((item) => Category.fromJson(item))
-                    .toList());
-        _allCategories = apiResponse.data ?? [];
-        _filteredCategories = List.from(_allCategories);
-        notifyListeners();
-        if (showSnack) {
-          SnackBarHelper.showSuccessSnackBar(apiResponse.message);
-        }
-      }
-    } catch (e) {
-      if (showSnack) SnackBarHelper.showErrorSnackBar(e.toString());
-      rethrow;
-    }
-    return _filteredCategories;
+    return _loadList<Category>(
+      endpointUrl: ApiEndpoints.categories,
+      state: _categories,
+      fromJson: Category.fromJson,
+      showSnack: showSnack,
+    );
   }
 
   void filterCategories(String keyWord) {
-    if (keyWord.isEmpty) {
-      _filteredCategories = List.from(_allCategories);
-    } else {
-      final lowerKeyWord = keyWord.toLowerCase();
-      _filteredCategories = _allCategories.where((category) {
-        return (category.name ?? "").toLowerCase().contains(lowerKeyWord);
-      }).toList();
-    }
-    notifyListeners();
+    _filterByKeyword<Category>(
+      state: _categories,
+      keyWord: keyWord,
+      matches: (category, lowerKeyWord) =>
+          (category.name ?? '').toLowerCase().contains(lowerKeyWord),
+    );
   }
 
   Future<List<SubCategory>> getAllSubCategory({bool showSnack = false}) async {
-    try {
-      Response response = await service.getItems(endpointUrl: "SubCategories");
-      if (response.isOk) {
-        ApiResponse<List<SubCategory>> apiResponse =
-            ApiResponse<List<SubCategory>>.fromJson(
-                response.body,
-                (json) => (json as List)
-                    .map((item) => SubCategory.fromJson(item))
-                    .toList());
-        _allSubCategories = apiResponse.data ?? [];
-        _filteredSubCategories = List.from(_allSubCategories);
-        notifyListeners();
-        if (showSnack) {
-          SnackBarHelper.showSuccessSnackBar(apiResponse.message);
-        }
-      }
-    } catch (e) {
-      if (showSnack) SnackBarHelper.showErrorSnackBar(e.toString());
-      rethrow;
-    }
-    return _filteredSubCategories;
+    return _loadList<SubCategory>(
+      endpointUrl: ApiEndpoints.subCategories,
+      state: _subCategories,
+      fromJson: SubCategory.fromJson,
+      showSnack: showSnack,
+    );
   }
 
   void filterSubCategories(String keyWord) {
-    if (keyWord.isEmpty) {
-      _filteredSubCategories = List.from(_allSubCategories);
-    } else {
-      final lowerKeyWord = keyWord.toLowerCase();
-      _filteredSubCategories = _allSubCategories.where((subCategory) {
-        return (subCategory.name ?? "").toLowerCase().contains(lowerKeyWord);
-      }).toList();
-    }
-    notifyListeners();
+    _filterByKeyword<SubCategory>(
+      state: _subCategories,
+      keyWord: keyWord,
+      matches: (subCategory, lowerKeyWord) =>
+          (subCategory.name ?? '').toLowerCase().contains(lowerKeyWord),
+    );
   }
 
   Future<List<Brand>> getAllBrands({bool showSnack = false}) async {
-    try {
-      Response response = await service.getItems(endpointUrl: "brands");
-      if (response.isOk) {
-        ApiResponse<List<Brand>> apiResponse =
-            ApiResponse<List<Brand>>.fromJson(
-                response.body,
-                (json) => (json as List)
-                    .map((item) => Brand.fromJson(item))
-                    .toList());
-
-        _allBrands = apiResponse.data ?? [];
-        _filteredBrands = List.from(_allBrands);
-        notifyListeners();
-
-        if (showSnack) {
-          SnackBarHelper.showSuccessSnackBar(apiResponse.message);
-        }
-      }
-    } catch (e) {
-      if (showSnack) {
-        SnackBarHelper.showErrorSnackBar(e.toString());
-      }
-      rethrow;
-    }
-    return _filteredBrands;
+    return _loadList<Brand>(
+      endpointUrl: ApiEndpoints.brands,
+      state: _brands,
+      fromJson: Brand.fromJson,
+      showSnack: showSnack,
+    );
   }
 
   void filterBrands(String keyWord) {
-    if (keyWord.isEmpty) {
-      _filteredBrands = List.from(_allBrands);
-    } else {
-      final lowerKeyWord = keyWord.toLowerCase();
-      _filteredBrands = _allBrands.where((brand) {
-        return (brand.name ?? "").toLowerCase().contains(lowerKeyWord);
-      }).toList();
-    }
-    notifyListeners();
+    _filterByKeyword<Brand>(
+      state: _brands,
+      keyWord: keyWord,
+      matches: (brand, lowerKeyWord) =>
+          (brand.name ?? '').toLowerCase().contains(lowerKeyWord),
+    );
   }
 
   Future<List<VariantType>> getAllVariantTypes({bool showSnack = false}) async {
-    try {
-      Response response = await service.getItems(endpointUrl: "variantTypes");
-      if (response.isOk) {
-        ApiResponse<List<VariantType>> apiResponse =
-            ApiResponse<List<VariantType>>.fromJson(
-          response.body,
-          (json) =>
-              (json as List).map((item) => VariantType.fromJson(item)).toList(),
-        );
-
-        _allVariantTypes = apiResponse.data ?? [];
-        _filteredVariantTypes = List.from(_allVariantTypes);
-        notifyListeners();
-
-        if (showSnack) {
-          SnackBarHelper.showSuccessSnackBar(apiResponse.message);
-        }
-      }
-    } catch (e) {
-      if (showSnack) SnackBarHelper.showErrorSnackBar(e.toString());
-      rethrow;
-    }
-    return _filteredVariantTypes;
+    return _loadList<VariantType>(
+      endpointUrl: ApiEndpoints.variantTypes,
+      state: _variantTypes,
+      fromJson: VariantType.fromJson,
+      showSnack: showSnack,
+    );
   }
 
   void filterVariantTypes(String keyWord) {
-    if (keyWord.isEmpty) {
-      _filteredVariantTypes = List.from(_allVariantTypes);
-    } else {
-      final lowerKeyWord = keyWord.toLowerCase();
-      _filteredVariantTypes = _allVariantTypes.where((variantType) {
-        final name = (variantType.name ?? "").toLowerCase();
-        final type = (variantType.type ?? "").toLowerCase();
+    _filterByKeyword<VariantType>(
+      state: _variantTypes,
+      keyWord: keyWord,
+      matches: (variantType, lowerKeyWord) {
+        final name = (variantType.name ?? '').toLowerCase();
+        final type = (variantType.type ?? '').toLowerCase();
         return name.contains(lowerKeyWord) || type.contains(lowerKeyWord);
-      }).toList();
-    }
-    notifyListeners();
+      },
+    );
   }
 
   Future<List<Variant>> getAllVariant({bool showSnack = false}) async {
-    try {
-      Response response = await service.getItems(endpointUrl: "variants");
-      if (response.isOk) {
-        ApiResponse<List<Variant>> apiResponse =
-            ApiResponse<List<Variant>>.fromJson(
-          response.body,
-          (json) =>
-              (json as List).map((item) => Variant.fromJson(item)).toList(),
-        );
-
-        _allVariants = apiResponse.data ?? [];
-        _filteredVariants = List.from(_allVariants);
-        notifyListeners();
-
-        if (showSnack) {
-          SnackBarHelper.showSuccessSnackBar(apiResponse.message);
-        }
-      }
-    } catch (e) {
-      if (showSnack) SnackBarHelper.showErrorSnackBar(e.toString());
-      rethrow;
-    }
-    return _filteredVariants;
+    return _loadList<Variant>(
+      endpointUrl: ApiEndpoints.variants,
+      state: _variants,
+      fromJson: Variant.fromJson,
+      showSnack: showSnack,
+    );
   }
 
   void filterVariant(String keyWord) {
-    if (keyWord.isEmpty) {
-      _filteredVariants = List.from(_allVariants);
-    } else {
-      final lowerKeyWord = keyWord.toLowerCase();
-      _filteredVariants = _allVariants.where((variant) {
-        final name = (variant.name ?? "").toLowerCase();
-        final typeName = (variant.variantTypeId?.name ?? "").toLowerCase();
+    _filterByKeyword<Variant>(
+      state: _variants,
+      keyWord: keyWord,
+      matches: (variant, lowerKeyWord) {
+        final name = (variant.name ?? '').toLowerCase();
+        final typeName = (variant.variantTypeId?.name ?? '').toLowerCase();
         return name.contains(lowerKeyWord) || typeName.contains(lowerKeyWord);
-      }).toList();
-    }
-    notifyListeners();
+      },
+    );
   }
 
   Future<List<Product>> getAllProducts({bool showSnack = false}) async {
-    try {
-      Response response = await service.getItems(endpointUrl: 'products');
-      if (response.isOk) {
-        ApiResponse<List<Product>> apiResponse =
-            ApiResponse<List<Product>>.fromJson(
-          response.body,
-          (json) => (json as List).map((e) => Product.fromJson(e)).toList(),
-        );
-
-        _allProducts = apiResponse.data ?? [];
-        _filteredProducts = List.from(_allProducts);
-        notifyListeners();
-
-        if (showSnack) {
-          SnackBarHelper.showSuccessSnackBar(apiResponse.message);
-        }
-      }
-    } catch (e) {
-      if (showSnack) {
-        SnackBarHelper.showErrorSnackBar(e.toString());
-      }
-      rethrow;
-    }
-    return _filteredProducts;
+    return _loadList<Product>(
+      endpointUrl: ApiEndpoints.products,
+      state: _products,
+      fromJson: Product.fromJson,
+      showSnack: showSnack,
+    );
   }
 
   void filterProducts(String keyword) {
-    if (keyword.isEmpty) {
-      _filteredProducts = List.from(_allProducts);
-    } else {
-      final lowerKeyword = keyword.toLowerCase();
-      _filteredProducts = _allProducts.where((product) {
+    _filterByKeyword<Product>(
+      state: _products,
+      keyWord: keyword,
+      matches: (product, lowerKeyword) {
         final name = (product.name ?? '').toLowerCase();
         final category = (product.proCategoryId?.name ?? '').toLowerCase();
         final brand = (product.proBrandId?.name ?? '').toLowerCase();
         return name.contains(lowerKeyword) ||
             category.contains(lowerKeyword) ||
             brand.contains(lowerKeyword);
-      }).toList();
-    }
-    notifyListeners();
+      },
+    );
   }
 
   Future<List<Coupon>> getAllCoupons({bool showSnack = false}) async {
-    try {
-      Response response = await service.getItems(endpointUrl: "couponCodes");
-
-      if (response.isOk) {
-        ApiResponse<List<Coupon>> apiResponse =
-            ApiResponse<List<Coupon>>.fromJson(
-          response.body,
-          (json) =>
-              (json as List).map((item) => Coupon.fromJson(item)).toList(),
-        );
-
-        _allCoupons = apiResponse.data ?? [];
-        _filteredCoupons = List.from(_allCoupons);
-        notifyListeners();
-
-        if (showSnack) {
-          SnackBarHelper.showSuccessSnackBar(apiResponse.message);
-        }
-      } else {
-        if (showSnack) {
-          SnackBarHelper.showErrorSnackBar(
-            response.body?['message'] ?? response.statusText ?? "Server Error",
-          );
-        }
-      }
-    } catch (e) {
-      if (showSnack) SnackBarHelper.showErrorSnackBar(e.toString());
-      rethrow;
-    }
-
-    return _filteredCoupons;
+    return _loadList<Coupon>(
+      endpointUrl: ApiEndpoints.couponCodes,
+      state: _coupons,
+      fromJson: Coupon.fromJson,
+      showSnack: showSnack,
+    );
   }
 
   void filterCoupons(String keyWord) {
-    if (keyWord.isEmpty) {
-      _filteredCoupons = List.from(_allCoupons);
-    } else {
-      final lowerKeyWord = keyWord.toLowerCase();
-      _filteredCoupons = _allCoupons.where((coupon) {
-        return (coupon.couponCode ?? "").toLowerCase().contains(lowerKeyWord);
-      }).toList();
-    }
-
-    notifyListeners();
+    _filterByKeyword<Coupon>(
+      state: _coupons,
+      keyWord: keyWord,
+      matches: (coupon, lowerKeyWord) =>
+          (coupon.couponCode ?? '').toLowerCase().contains(lowerKeyWord),
+    );
   }
 
   Future<List<Poster>> getAllPosters({bool showSnack = false}) async {
-    try {
-      Response response = await service.getItems(endpointUrl: "posters");
-      if (response.isOk) {
-        ApiResponse<List<Poster>> apiResponse =
-            ApiResponse<List<Poster>>.fromJson(
-          response.body,
-          (json) =>
-              (json as List).map((item) => Poster.fromJson(item)).toList(),
-        );
-
-        _allPosters = apiResponse.data ?? [];
-        _filteredPosters = List.from(_allPosters);
-        notifyListeners();
-
-        if (showSnack) {
-          SnackBarHelper.showSuccessSnackBar(apiResponse.message);
-        }
-      } else {
-        if (showSnack) {
-          SnackBarHelper.showErrorSnackBar(
-            response.body?['message'] ?? response.statusText ?? "Server Error",
-          );
-        }
-      }
-    } catch (e) {
-      if (showSnack) SnackBarHelper.showErrorSnackBar(e.toString());
-      rethrow;
-    }
-    return _filteredPosters;
+    return _loadList<Poster>(
+      endpointUrl: ApiEndpoints.posters,
+      state: _posters,
+      fromJson: Poster.fromJson,
+      showSnack: showSnack,
+    );
   }
 
   void filterPosters(String keyWord) {
-    if (keyWord.isEmpty) {
-      _filteredPosters = List.from(_allPosters);
-    } else {
-      final lowerKeyWord = keyWord.toLowerCase();
-      _filteredPosters = _allPosters.where((poster) {
-        final name = (poster.posterName ?? "").toLowerCase();
-        return name.contains(lowerKeyWord);
-      }).toList();
+    _filterByKeyword<Poster>(
+      state: _posters,
+      keyWord: keyWord,
+      matches: (poster, lowerKeyWord) =>
+          (poster.posterName ?? '').toLowerCase().contains(lowerKeyWord),
+    );
+  }
+
+  Future<List<MyNotification>> getAllNotifications({bool showSnack = false}) {
+    return _loadList<MyNotification>(
+      endpointUrl: ApiEndpoints.notifications,
+      state: _notifications,
+      fromJson: MyNotification.fromJson,
+      showSnack: showSnack,
+    );
+  }
+
+  void filterNotifications(String keyword) {
+    _filterByKeyword<MyNotification>(
+      state: _notifications,
+      keyWord: keyword,
+      matches: (notification, lowerKeyword) =>
+          (notification.title ?? '').toLowerCase().contains(lowerKeyword),
+    );
+  }
+
+  Future<List<Order>> getAllOrders({bool showSnack = false}) async {
+    return _loadList<Order>(
+      endpointUrl: ApiEndpoints.orders,
+      state: _orders,
+      fromJson: Order.fromJson,
+      showSnack: showSnack,
+    );
+  }
+
+  void filterOrders(String keyword) {
+    _filterByKeyword<Order>(
+      state: _orders,
+      keyWord: keyword,
+      matches: (order, lowerKeyword) {
+        final email = (order.userID?.email ?? '').toLowerCase();
+        final status = (order.orderStatus ?? '').toLowerCase();
+        return email.contains(lowerKeyword) || status.contains(lowerKeyword);
+      },
+    );
+  }
+
+  int calculateOrdersWithStatus({String? status}) {
+    if (status == null) return _orders.all.length;
+    return _orders.all.where((order) => order.orderStatus == status).length;
+  }
+
+  void filterProductsByQuantity(String productQntType) {
+    if (productQntType == 'All Product') {
+      _products.resetFilter();
+    } else if (productQntType == 'Out of Stock') {
+      _products.filter((product) => product.quantity != null && product.quantity == 0);
+    } else if (productQntType == 'Limited Stock') {
+      _products.filter((product) => product.quantity != null && product.quantity == 1);
+    } else if (productQntType == 'Other Stock') {
+      _products.filter((product) {
+        return product.quantity != null &&
+            product.quantity != 0 &&
+            product.quantity != 1;
+      });
     }
     notifyListeners();
   }
 
-  Future<List<MyNotification>> getAllNotifications(
-      {bool showSnack = false}) async {
+  int calculateProductWithQuantity({int? quantity}) {
+    if (quantity == null) return _products.all.length;
+    return _products.all.where((product) => product.quantity == quantity).length;
+  }
+
+  Future<List<T>> _loadList<T>({
+    required String endpointUrl,
+    required DataListState<T> state,
+    required T Function(Map<String, dynamic> json) fromJson,
+    required bool showSnack,
+  }) async {
     try {
-      Response response =
-          await service.getItems(endpointUrl: 'notification/all-notification');
-      if (response.isOk) {
-        ApiResponse<List<MyNotification>> apiResponse =
-            ApiResponse<List<MyNotification>>.fromJson(
-          response.body,
+      final response = await service.getItems(endpointUrl: endpointUrl);
+      if (response.isOk && response.body is Map) {
+        final body = (response.body as Map).cast<String, dynamic>();
+        final apiResponse = ApiResponse<List<T>>.fromJson(
+          body,
           (json) => (json as List)
-              .map((item) => MyNotification.fromJson(item))
+              .map((item) => fromJson((item as Map).cast<String, dynamic>()))
               .toList(),
         );
-        _allNotifications = apiResponse.data ?? [];
-        _filteredNotifications = List.from(_allNotifications);
+        state.setItems(apiResponse.data ?? []);
         notifyListeners();
         if (showSnack) SnackBarHelper.showSuccessSnackBar(apiResponse.message);
+      } else if (showSnack) {
+        SnackBarHelper.showErrorSnackBar(_responseErrorMessage(response));
       }
     } catch (e) {
       if (showSnack) SnackBarHelper.showErrorSnackBar(e.toString());
       rethrow;
     }
-    return _filteredNotifications;
+    return state.filtered;
   }
 
-  void filterNotifications(String keyword) {
-    if (keyword.isEmpty) {
-      _filteredNotifications = List.from(_allNotifications);
+  void _filterByKeyword<T>({
+    required DataListState<T> state,
+    required String keyWord,
+    required bool Function(T item, String lowerKeyWord) matches,
+  }) {
+    if (keyWord.isEmpty) {
+      state.resetFilter();
     } else {
-      final lowerKeyword = keyword.toLowerCase();
-      _filteredNotifications = _allNotifications.where((notification) {
-        return (notification.title ?? '').toLowerCase().contains(lowerKeyword);
-      }).toList();
+      final lowerKeyWord = keyWord.toLowerCase();
+      state.filter((item) => matches(item, lowerKeyWord));
     }
     notifyListeners();
   }
 
-  Future<List<Order>> getAllOrders({bool showSnack = false}) async {
-    try {
-      Response response = await service.getItems(endpointUrl: 'orders');
-
-      if (response.isOk) {
-        ApiResponse<List<Order>> apiResponse =
-            ApiResponse<List<Order>>.fromJson(
-                response.body,
-                (json) => (json as List)
-                    .map((item) => Order.fromJson(item))
-                    .toList());
-        print(apiResponse.message);
-        _allOrders = apiResponse.data ?? [];
-        _filteredOrders = List.from(_allOrders);
-        notifyListeners();
-        if (showSnack) {
-          SnackBarHelper.showSuccessSnackBar(apiResponse.message);
-        }
-      }
-    } catch (e) {
-      if (showSnack) {
-        SnackBarHelper.showErrorSnackBar(e.toString());
-      }
-      rethrow;
-    }
-
-    return _filteredOrders;
-  }
-
-  void filterOrders(String keyword) {
-    if (keyword.isEmpty) {
-      _filteredOrders = List.from(_allOrders);
-    } else {
-      final lowerKeyword = keyword.toLowerCase();
-      _filteredOrders = _allOrders.where((order) {
-        bool nameMatches =
-            (order.userID?.email ?? '').toLowerCase().contains(lowerKeyword);
-        bool statusMatches =
-            (order.orderStatus ?? '').toLowerCase().contains(lowerKeyword);
-        return nameMatches || statusMatches;
-      }).toList();
-    }
-
-    notifyListeners();
-  }
-
-  int calculateOrdersWithStatus({String? status}) {
-    int totalOrders = 0;
-
-    if (status == null) {
-      totalOrders = _allOrders.length;
-    } else {
-      for (Order order in _allOrders) {
-        if (order.orderStatus == status) {
-          totalOrders += 1;
-        }
-      }
-    }
-    return totalOrders;
-  }
-
-  filterProductsByQuantity(String productQntType) {
-    if (productQntType == "All Product") {
-      _filteredProducts = List.from(_allProducts);
-    } else if (productQntType == "Out of Stock") {
-      _filteredProducts = _allProducts.where((product) {
-        return product.quantity != null && product.quantity == 0;
-      }).toList();
-    } else if (productQntType == "Limited Stock") {
-      _filteredProducts = _allProducts.where((product) {
-        return product.quantity != null && product.quantity == 1;
-      }).toList();
-    } else if (productQntType == "Other Stock") {
-      _filteredProducts = _allProducts.where((product) {
-        return product.quantity != null &&
-            product.quantity != 0 &&
-            product.quantity != 1;
-      }).toList();
-    }
-    notifyListeners();
-  }
-
-  calculateProductWithQuantity({int? quantity}) {
-    int totalOrders = 0;
-    if (quantity == null) {
-      totalOrders = _allProducts.length;
-    } else {
-      for (Product product in _allProducts) {
-        if (product.quantity != null && product.quantity == quantity) {
-          totalOrders++;
-        }
-      }
-    }
-    return totalOrders;
+  String _responseErrorMessage(Response response) {
+    final body = response.body;
+    if (body is Map && body['message'] != null) return body['message'].toString();
+    return response.statusText ?? 'Server Error';
   }
 }

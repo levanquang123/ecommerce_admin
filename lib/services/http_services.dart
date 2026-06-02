@@ -5,10 +5,11 @@ import 'package:get_storage/get_storage.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:uuid/uuid.dart';
 
+import '../core/api/api_client.dart';
 import '../utility/constants.dart';
 import 'auth_session_service.dart';
 
-class HttpService extends GetConnect {
+class HttpService extends GetConnect implements ApiClient {
   final GetStorage _box = GetStorage();
   final AuthSessionService _authSessionService = AuthSessionService.instance;
   final Uuid _uuid = const Uuid();

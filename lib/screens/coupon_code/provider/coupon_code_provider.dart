@@ -1,16 +1,15 @@
-import '../../../models/api_response.dart';
 import '../../../models/coupon.dart';
 import '../../../models/product.dart';
+import '../data/coupon_repository.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import '../../../core/data/data_provider.dart';
 import '../../../models/category.dart';
 import '../../../models/sub_category.dart';
-import '../../../services/http_services.dart';
 import '../../../utility/snack_bar_helper.dart';
 
 class CouponCodeProvider extends ChangeNotifier {
-  HttpService service = HttpService();
+  final CouponRepository _couponRepository;
   final DataProvider _dataProvider;
   Coupon? couponForUpdate;
 
@@ -25,7 +24,7 @@ class CouponCodeProvider extends ChangeNotifier {
   SubCategory? selectedSubCategory;
   Product? selectedProduct;
 
-  CouponCodeProvider(this._dataProvider);
+  CouponCodeProvider(this._dataProvider, this._couponRepository);
 
   Future<bool> addCoupon() async {
     try {
@@ -46,32 +45,20 @@ class CouponCodeProvider extends ChangeNotifier {
         "applicableProduct": selectedProduct?.sId,
       };
 
-      final response = await service.addItem(
-        endpointUrl: 'couponCodes',
-        itemData: coupon,
-      );
+      final apiResponse = await _couponRepository.createCoupon(coupon);
 
-      if (response.isOk) {
-        ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
+      if (apiResponse.success == true) {
+        clearFields();
+        _dataProvider.getAllCoupons();
 
-        if (apiResponse.success == true) {
-          clearFields();
-          _dataProvider.getAllCoupons();
+        SnackBarHelper.showSuccessSnackBar(
+          apiResponse.message,
+        );
 
-          SnackBarHelper.showSuccessSnackBar(
-            apiResponse.message,
-          );
-
-          return true;
-        } else {
-          SnackBarHelper.showErrorSnackBar(
-            apiResponse.message,
-          );
-          return false;
-        }
+        return true;
       } else {
         SnackBarHelper.showErrorSnackBar(
-          response.body?['message'] ?? response.statusText,
+          apiResponse.message,
         );
         return false;
       }
@@ -106,29 +93,19 @@ class CouponCodeProvider extends ChangeNotifier {
         "applicableProduct": selectedProduct?.sId,
       };
 
-      final response = await service.updateItem(
-        endpointUrl: "couponCodes",
-        itemId: couponForUpdate?.sId ?? "",
-        itemData: coupon,
+      final apiResponse = await _couponRepository.updateCoupon(
+        couponId: couponForUpdate?.sId ?? "",
+        data: coupon,
       );
 
-      if (response.isOk) {
-        final apiResponse = ApiResponse.fromJson(response.body, null);
-
-        if (apiResponse.success == true) {
-          clearFields();
-          _dataProvider.getAllCoupons();
-          SnackBarHelper.showSuccessSnackBar(apiResponse.message);
-          return true;
-        } else {
-          SnackBarHelper.showErrorSnackBar(
-            "Failed to update coupon: ${apiResponse.message}",
-          );
-          return false;
-        }
+      if (apiResponse.success == true) {
+        clearFields();
+        _dataProvider.getAllCoupons();
+        SnackBarHelper.showSuccessSnackBar(apiResponse.message);
+        return true;
       } else {
         SnackBarHelper.showErrorSnackBar(
-          response.body?['message'] ?? response.statusText ?? "Server Error",
+          "Failed to update coupon: ${apiResponse.message}",
         );
         return false;
       }
@@ -148,23 +125,12 @@ class CouponCodeProvider extends ChangeNotifier {
 
   Future<void> deleteCoupon(Coupon coupon) async {
     try {
-      final response = await service.deleteItem(
-        endpointUrl: 'couponCodes',
-        itemId: coupon.sId ?? "",
-      );
-
-      if (response.isOk) {
-        final apiResponse = ApiResponse.fromJson(response.body, null);
-        if (apiResponse.success == true) {
-          SnackBarHelper.showSuccessSnackBar('Coupon Deleted Successfully');
-          _dataProvider.getAllCoupons();
-        } else {
-          SnackBarHelper.showErrorSnackBar(apiResponse.message);
-        }
+      final apiResponse = await _couponRepository.deleteCoupon(coupon);
+      if (apiResponse.success == true) {
+        SnackBarHelper.showSuccessSnackBar('Coupon Deleted Successfully');
+        _dataProvider.getAllCoupons();
       } else {
-        SnackBarHelper.showErrorSnackBar(
-          response.body?['message'] ?? response.statusText ?? "Server Error",
-        );
+        SnackBarHelper.showErrorSnackBar(apiResponse.message);
       }
     } catch (e) {
       SnackBarHelper.showErrorSnackBar("Error: $e");
@@ -207,5 +173,14 @@ class CouponCodeProvider extends ChangeNotifier {
 
   updateUi() {
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    couponCodeCtrl.dispose();
+    discountAmountCtrl.dispose();
+    minimumPurchaseAmountCtrl.dispose();
+    endDateCtrl.dispose();
+    super.dispose();
   }
 }

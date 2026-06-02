@@ -2,14 +2,13 @@ import 'dart:developer';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import '../../../core/data/data_provider.dart';
-import '../../../models/api_response.dart';
 import '../../../models/category.dart';
 import '../../../models/sub_category.dart';
-import '../../../services/http_services.dart';
 import '../../../utility/snack_bar_helper.dart';
+import '../data/sub_category_repository.dart';
 
 class SubCategoryProvider extends ChangeNotifier {
-  HttpService service = HttpService();
+  final SubCategoryRepository _subCategoryRepository;
   final DataProvider _dataProvider;
 
   final addSubCategoryFormKey = GlobalKey<FormState>();
@@ -17,7 +16,7 @@ class SubCategoryProvider extends ChangeNotifier {
   Category? selectedCategory;
   SubCategory? subCategoryForUpdate;
 
-  SubCategoryProvider(this._dataProvider);
+  SubCategoryProvider(this._dataProvider, this._subCategoryRepository);
 
   Future<bool> addSubCategory() async {
     try {
@@ -27,34 +26,23 @@ class SubCategoryProvider extends ChangeNotifier {
         'categoryId': selectedCategory?.sId,
       };
 
-      final response = await service.addItem(
-        endpointUrl: 'subCategories',
-        itemData: subCategory,
-      );
+      final apiResponse =
+          await _subCategoryRepository.createSubCategory(subCategory);
 
       SnackBarHelper.hideSnackBar();
-      if (response.isOk) {
-        ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
-
-        if (apiResponse.success == true) {
-          clearFields();
-          SnackBarHelper.showSuccessSnackBar(apiResponse.message);
-          _dataProvider.getAllSubCategory();
-          log('Sub category added');
-          return true;
-        } else {
-          SnackBarHelper.showErrorSnackBar(
-              'Failed to add Sub Category: ${apiResponse.message}');
-          return false;
-        }
+      if (apiResponse.success == true) {
+        clearFields();
+        SnackBarHelper.showSuccessSnackBar(apiResponse.message);
+        _dataProvider.getAllSubCategory();
+        log('Sub category added');
+        return true;
       } else {
         SnackBarHelper.showErrorSnackBar(
-            'Error ${response.body?['message'] ?? response.statusText}');
+            'Failed to add Sub Category: ${apiResponse.message}');
         return false;
       }
     } catch (e) {
       SnackBarHelper.hideSnackBar();
-      print(e);
       SnackBarHelper.showErrorSnackBar('An error occurred: $e');
       return false;
     }
@@ -69,38 +57,27 @@ class SubCategoryProvider extends ChangeNotifier {
           'categoryId': selectedCategory?.sId
         };
 
-        final response = await service.updateItem(
-          endpointUrl: 'subCategories',
-          itemData: subCategory,
-          itemId: subCategoryForUpdate?.sId ?? '',
+        final apiResponse = await _subCategoryRepository.updateSubCategory(
+          subCategoryId: subCategoryForUpdate?.sId ?? '',
+          data: subCategory,
         );
 
         SnackBarHelper.hideSnackBar();
-        if (response.isOk) {
-          ApiResponse apiResponse =
-          ApiResponse.fromJson(response.body, null);
-
-          if (apiResponse.success == true) {
-            clearFields();
-            SnackBarHelper.showSuccessSnackBar('${apiResponse.message}');
-            log('Sub Category Updated');
-            _dataProvider.getAllSubCategory();
-            return true;
-          } else {
-            SnackBarHelper.showErrorSnackBar(
-                'Failed to update Sub Category: ${apiResponse.message}');
-            return false;
-          }
+        if (apiResponse.success == true) {
+          clearFields();
+          SnackBarHelper.showSuccessSnackBar('${apiResponse.message}');
+          log('Sub Category Updated');
+          _dataProvider.getAllSubCategory();
+          return true;
         } else {
           SnackBarHelper.showErrorSnackBar(
-              'Error ${response.body?['message'] ?? response.statusText}');
+              'Failed to update Sub Category: ${apiResponse.message}');
           return false;
         }
       }
       return false;
     } catch (e) {
       SnackBarHelper.hideSnackBar();
-      print(e);
       SnackBarHelper.showErrorSnackBar('An error occurred: $e');
       return false;
     }
@@ -108,26 +85,17 @@ class SubCategoryProvider extends ChangeNotifier {
 
   Future<void> deleteSubCategory(SubCategory subCategory) async {
     try {
-      Response response = await service.deleteItem(
-        endpointUrl: 'subCategories',
-        itemId: subCategory.sId ?? "",
-      );
+      final apiResponse =
+          await _subCategoryRepository.deleteSubCategory(subCategory);
 
-      if (response.isOk) {
-        ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
-
-        if (apiResponse.success == true) {
-          SnackBarHelper.showSuccessSnackBar("${apiResponse.message}");
-          _dataProvider.getAllSubCategory();
-        }
+      if (apiResponse.success == true) {
+        SnackBarHelper.showSuccessSnackBar("${apiResponse.message}");
+        _dataProvider.getAllSubCategory();
       } else {
-        SnackBarHelper.showErrorSnackBar(
-          'Error ${response.body?['message'] ?? response.statusText}',
-        );
+        SnackBarHelper.showErrorSnackBar(apiResponse.message);
       }
     } catch (e) {
       SnackBarHelper.hideSnackBar();
-      print(e);
       rethrow;
     }
   }
@@ -160,5 +128,11 @@ class SubCategoryProvider extends ChangeNotifier {
 
   updateUi() {
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    subCategoryNameCtrl.dispose();
+    super.dispose();
   }
 }

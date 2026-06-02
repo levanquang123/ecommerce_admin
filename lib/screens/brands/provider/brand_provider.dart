@@ -1,14 +1,13 @@
-import '../../../models/api_response.dart';
 import '../../../models/brand.dart';
+import '../data/brand_repository.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import '../../../core/data/data_provider.dart';
 import '../../../models/sub_category.dart';
-import '../../../services/http_services.dart';
 import '../../../utility/snack_bar_helper.dart';
 
 class BrandProvider extends ChangeNotifier {
-  HttpService service = HttpService();
+  final BrandRepository _brandRepository;
   final DataProvider _dataProvider;
 
   final addBrandFormKey = GlobalKey<FormState>();
@@ -16,7 +15,7 @@ class BrandProvider extends ChangeNotifier {
   SubCategory? selectedSubCategory;
   Brand? brandForUpdate;
 
-  BrandProvider(this._dataProvider);
+  BrandProvider(this._dataProvider, this._brandRepository);
 
   Future<bool> addBrand() async {
     try {
@@ -25,31 +24,20 @@ class BrandProvider extends ChangeNotifier {
         'subCategoryId': selectedSubCategory?.sId,
       };
 
-      final response = await service.addItem(
-        endpointUrl: 'brands',
-        itemData: brand,
-      );
+      final apiResponse = await _brandRepository.createBrand(brand);
 
-      if (response.isOk) {
-        ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
-
-        if (apiResponse.success == true) {
-          clearFields();
-          SnackBarHelper.showSuccessSnackBar(apiResponse.message);
-          _dataProvider.getAllBrands();
-          return true;
-        } else {
-          SnackBarHelper.showErrorSnackBar(
-              'Failed to add Brand: ${apiResponse.message}');
-          return false;
-        }
+      if (apiResponse.success == true) {
+        clearFields();
+        SnackBarHelper.showSuccessSnackBar(apiResponse.message);
+        _dataProvider.getAllBrands();
+        return true;
       } else {
         SnackBarHelper.showErrorSnackBar(
-            'Error ${response.body?['message'] ?? response.statusText}');
+            'Failed to add Brand: ${apiResponse.message}');
         return false;
       }
+
     } catch (e) {
-      print(e);
       SnackBarHelper.showErrorSnackBar('An error occurred: $e');
       return false;
     }
@@ -63,34 +51,25 @@ class BrandProvider extends ChangeNotifier {
           'subCategoryId': selectedSubCategory?.sId,
         };
 
-        final response = await service.updateItem(
-          endpointUrl: 'brands',
-          itemData: brand,
-          itemId: brandForUpdate?.sId ?? '',
+        final apiResponse = await _brandRepository.updateBrand(
+          brandId: brandForUpdate?.sId ?? '',
+          data: brand,
         );
 
-        if (response.isOk) {
-          ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
-
-          if (apiResponse.success == true) {
-            clearFields();
-            SnackBarHelper.showSuccessSnackBar(apiResponse.message);
-            _dataProvider.getAllBrands();
-            return true;
-          } else {
-            SnackBarHelper.showErrorSnackBar(
-                'Failed to update Brand: ${apiResponse.message}');
-            return false;
-          }
+        if (apiResponse.success == true) {
+          clearFields();
+          SnackBarHelper.showSuccessSnackBar(apiResponse.message);
+          _dataProvider.getAllBrands();
+          return true;
         } else {
           SnackBarHelper.showErrorSnackBar(
-              'Error ${response.body?['message'] ?? response.statusText}');
+              'Failed to update Brand: ${apiResponse.message}');
           return false;
         }
+
       }
       return false;
     } catch (e) {
-      print(e);
       SnackBarHelper.showErrorSnackBar('An error occurred: $e');
       return false;
     }
@@ -98,24 +77,15 @@ class BrandProvider extends ChangeNotifier {
 
   Future<void> deleteBrand(Brand brand) async {
     try {
-      Response response = await service.deleteItem(
-        endpointUrl: 'brands',
-        itemId: brand.sId ?? "",
-      );
+      final apiResponse = await _brandRepository.deleteBrand(brand);
 
-      if (response.isOk) {
-        ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
-
-        if (apiResponse.success == true) {
-          SnackBarHelper.showSuccessSnackBar(apiResponse.message);
-          _dataProvider.getAllBrands();
-        }
+      if (apiResponse.success == true) {
+        SnackBarHelper.showSuccessSnackBar(apiResponse.message);
+        _dataProvider.getAllBrands();
       } else {
-        SnackBarHelper.showErrorSnackBar(
-            'Error ${response.body?['message'] ?? response.statusText}');
+        SnackBarHelper.showErrorSnackBar(apiResponse.message);
       }
     } catch (e) {
-      print(e);
       rethrow;
     }
   }
@@ -148,5 +118,11 @@ class BrandProvider extends ChangeNotifier {
 
   updateUI() {
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    brandNameCtrl.dispose();
+    super.dispose();
   }
 }

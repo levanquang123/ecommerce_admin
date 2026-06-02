@@ -1,17 +1,16 @@
 import 'dart:io';
-import '../../../services/http_services.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
 import '../../../core/data/data_provider.dart';
-import '../../../models/api_response.dart';
 import '../../../models/poster.dart';
 import '../../../utility/image_multipart.dart';
 import '../../../utility/snack_bar_helper.dart';
+import '../data/poster_repository.dart';
 
 class PosterProvider extends ChangeNotifier {
-  HttpService service = HttpService();
+  final PosterRepository _posterRepository;
   final DataProvider _dataProvider;
 
   final addPosterFormKey = GlobalKey<FormState>();
@@ -22,7 +21,7 @@ class PosterProvider extends ChangeNotifier {
   File? selectedImage;
   XFile? imgXFile;
 
-  PosterProvider(this._dataProvider);
+  PosterProvider(this._dataProvider, this._posterRepository);
 
   Future<bool> addPoster() async {
     try {
@@ -40,26 +39,17 @@ class PosterProvider extends ChangeNotifier {
       final FormData form =
           await createFormData(imgXFile: imgXFile, formData: formDataMap);
 
-      final response =
-          await service.addItem(endpointUrl: "posters", itemData: form);
+      final apiResponse = await _posterRepository.createPoster(form);
 
       SnackBarHelper.hideSnackBar();
-      if (response.isOk) {
-        ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
-
-        if (apiResponse.success == true) {
-          SnackBarHelper.showSuccessSnackBar("Poster Added Successfully");
-          _dataProvider.getAllPosters();
-          clearFields();
-          return true;
-        } else {
-          SnackBarHelper.showErrorSnackBar(
-              "Failed to add poster: ${apiResponse.message}");
-          return false;
-        }
+      if (apiResponse.success == true) {
+        SnackBarHelper.showSuccessSnackBar("Poster Added Successfully");
+        _dataProvider.getAllPosters();
+        clearFields();
+        return true;
       } else {
         SnackBarHelper.showErrorSnackBar(
-            response.body?['message'] ?? response.statusText ?? "Server Error");
+            "Failed to add poster: ${apiResponse.message}");
         return false;
       }
     } catch (e) {
@@ -85,29 +75,19 @@ class PosterProvider extends ChangeNotifier {
           await createFormData(imgXFile: imgXFile, formData: formDataMap);
 
       SnackBarHelper.hideSnackBar();
-      final response = await service.updateItem(
-        endpointUrl: "posters",
-        itemId: posterForUpdate?.sId ?? "",
-        itemData: formData,
+      final apiResponse = await _posterRepository.updatePoster(
+        posterId: posterForUpdate?.sId ?? "",
+        formData: formData,
       );
 
-      if (response.isOk) {
-        ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
-
-        if (apiResponse.success == true) {
-          clearFields();
-          SnackBarHelper.showSuccessSnackBar(apiResponse.message);
-          _dataProvider.getAllPosters();
-          return true;
-        } else {
-          SnackBarHelper.showErrorSnackBar(
-              "Failed to update poster: ${apiResponse.message}");
-          return false;
-        }
+      if (apiResponse.success == true) {
+        clearFields();
+        SnackBarHelper.showSuccessSnackBar(apiResponse.message);
+        _dataProvider.getAllPosters();
+        return true;
       } else {
         SnackBarHelper.showErrorSnackBar(
-          response.body?['message'] ?? response.statusText ?? "Server Error",
-        );
+            "Failed to update poster: ${apiResponse.message}");
         return false;
       }
     } catch (e) {
@@ -136,24 +116,13 @@ class PosterProvider extends ChangeNotifier {
 
   Future<void> deletePoster(Poster poster) async {
     try {
-      Response response = await service.deleteItem(
-        endpointUrl: 'posters',
-        itemId: poster.sId ?? "",
-      );
+      final apiResponse = await _posterRepository.deletePoster(poster);
 
-      if (response.isOk) {
-        ApiResponse apiResponse = ApiResponse.fromJson(response.body, null);
-
-        if (apiResponse.success == true) {
-          SnackBarHelper.showSuccessSnackBar('Poster Deleted Successfully');
-          _dataProvider.getAllPosters();
-        } else {
-          SnackBarHelper.showErrorSnackBar(apiResponse.message);
-        }
+      if (apiResponse.success == true) {
+        SnackBarHelper.showSuccessSnackBar('Poster Deleted Successfully');
+        _dataProvider.getAllPosters();
       } else {
-        SnackBarHelper.showErrorSnackBar(
-          'Error ${response.body?['message'] ?? response.statusText}',
-        );
+        SnackBarHelper.showErrorSnackBar(apiResponse.message);
       }
     } catch (e) {
       SnackBarHelper.showErrorSnackBar("Error: $e");
@@ -187,5 +156,11 @@ class PosterProvider extends ChangeNotifier {
     selectedImage = null;
     imgXFile = null;
     posterForUpdate = null;
+  }
+
+  @override
+  void dispose() {
+    posterNameCtrl.dispose();
+    super.dispose();
   }
 }

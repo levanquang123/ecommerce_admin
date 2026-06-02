@@ -3,13 +3,12 @@ import '../../../models/variant_type.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import '../../../core/data/data_provider.dart';
-import '../../../models/api_response.dart';
 import '../../../models/variant.dart';
-import '../../../services/http_services.dart';
 import '../../../utility/snack_bar_helper.dart';
+import '../data/variant_repository.dart';
 
 class VariantsProvider extends ChangeNotifier {
-  HttpService service = HttpService();
+  final VariantRepository _variantRepository;
   final DataProvider _dataProvider;
 
   final addVariantsFormKey = GlobalKey<FormState>();
@@ -24,7 +23,7 @@ class VariantsProvider extends ChangeNotifier {
   List<Variant> get allVariants => _allVariants;
   List<Variant> get filteredVariants => _filteredVariants;
 
-  VariantsProvider(this._dataProvider);
+  VariantsProvider(this._dataProvider, this._variantRepository);
 
   Future<bool> addVariant() async {
     try {
@@ -34,28 +33,16 @@ class VariantsProvider extends ChangeNotifier {
         'variantTypeId': selectedVariantType?.sId,
       };
 
-      final response = await service.addItem(
-        endpointUrl: 'variants',
-        itemData: variant,
-      );
+      final apiResponse = await _variantRepository.createVariant(variant);
 
       SnackBarHelper.hideSnackBar();
-      if (response.isOk) {
-        final apiResponse = ApiResponse.fromJson(response.body, null);
-
-        if (apiResponse.success == true) {
-          clearFields();
-          SnackBarHelper.showSuccessSnackBar(apiResponse.message);
-          _dataProvider.getAllVariant();
-          return true;
-        } else {
-          SnackBarHelper.showErrorSnackBar(apiResponse.message);
-          return false;
-        }
+      if (apiResponse.success == true) {
+        clearFields();
+        SnackBarHelper.showSuccessSnackBar(apiResponse.message);
+        _dataProvider.getAllVariant();
+        return true;
       } else {
-        SnackBarHelper.showErrorSnackBar(
-          response.body?['message'] ?? response.statusText,
-        );
+        SnackBarHelper.showErrorSnackBar(apiResponse.message);
         return false;
       }
     } catch (e) {
@@ -76,29 +63,19 @@ class VariantsProvider extends ChangeNotifier {
         'variantTypeId': selectedVariantType?.sId,
       };
 
-      final response = await service.updateItem(
-        endpointUrl: 'variants',
-        itemData: variant,
-        itemId: variantForUpdate?.sId ?? '',
+      final apiResponse = await _variantRepository.updateVariant(
+        variantId: variantForUpdate?.sId ?? '',
+        data: variant,
       );
 
       SnackBarHelper.hideSnackBar();
-      if (response.isOk) {
-        final apiResponse = ApiResponse.fromJson(response.body, null);
-
-        if (apiResponse.success == true) {
-          clearFields();
-          SnackBarHelper.showSuccessSnackBar(apiResponse.message);
-          _dataProvider.getAllVariant();
-          return true;
-        } else {
-          SnackBarHelper.showErrorSnackBar(apiResponse.message);
-          return false;
-        }
+      if (apiResponse.success == true) {
+        clearFields();
+        SnackBarHelper.showSuccessSnackBar(apiResponse.message);
+        _dataProvider.getAllVariant();
+        return true;
       } else {
-        SnackBarHelper.showErrorSnackBar(
-          response.body?['message'] ?? response.statusText,
-        );
+        SnackBarHelper.showErrorSnackBar(apiResponse.message);
         return false;
       }
     } catch (e) {
@@ -119,26 +96,14 @@ class VariantsProvider extends ChangeNotifier {
 
   Future<bool> deleteVariant(Variant variant) async {
     try {
-      final Response response = await service.deleteItem(
-        endpointUrl: 'variants',
-        itemId: variant.sId ?? '',
-      );
+      final apiResponse = await _variantRepository.deleteVariant(variant);
 
-      if (response.isOk) {
-        final apiResponse = ApiResponse.fromJson(response.body, null);
-
-        if (apiResponse.success == true) {
-          SnackBarHelper.showSuccessSnackBar(apiResponse.message);
-          _dataProvider.getAllVariant();
-          return true;
-        } else {
-          SnackBarHelper.showErrorSnackBar(apiResponse.message);
-          return false;
-        }
+      if (apiResponse.success == true) {
+        SnackBarHelper.showSuccessSnackBar(apiResponse.message);
+        _dataProvider.getAllVariant();
+        return true;
       } else {
-        SnackBarHelper.showErrorSnackBar(
-          response.body?['message'] ?? response.statusText,
-        );
+        SnackBarHelper.showErrorSnackBar(apiResponse.message);
         return false;
       }
     } catch (e) {
@@ -151,16 +116,8 @@ class VariantsProvider extends ChangeNotifier {
 
   Future<List<Variant>> getAllVariant({bool showSnack = false}) async {
     try {
-      Response response = await service.getItems(endpointUrl: "variants");
-      if (response.isOk) {
-        ApiResponse<List<Variant>> apiResponse =
-        ApiResponse<List<Variant>>.fromJson(
-          response.body,
-              (json) => (json as List)
-              .map((item) => Variant.fromJson(item))
-              .toList(),
-        );
-
+      final apiResponse = await _variantRepository.getAllVariants();
+      if (apiResponse.success == true) {
         _allVariants = apiResponse.data ?? [];
         _filteredVariants = List.from(_allVariants);
         notifyListeners();
@@ -168,6 +125,8 @@ class VariantsProvider extends ChangeNotifier {
         if (showSnack) {
           SnackBarHelper.showSuccessSnackBar(apiResponse.message);
         }
+      } else if (showSnack) {
+        SnackBarHelper.showErrorSnackBar(apiResponse.message);
       }
     } catch (e) {
       if (showSnack) SnackBarHelper.showErrorSnackBar(e.toString());
@@ -212,5 +171,11 @@ class VariantsProvider extends ChangeNotifier {
 
   void updateUI() {
     notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    variantCtrl.dispose();
+    super.dispose();
   }
 }

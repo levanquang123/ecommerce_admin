@@ -10,20 +10,31 @@ import 'package:provider/provider.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'core/data/data_provider.dart';
 import 'core/routes/app_pages.dart';
+import 'screens/brands/data/brand_repository.dart';
 import 'screens/brands/provider/brand_provider.dart';
+import 'screens/category/data/category_repository.dart';
 import 'screens/category/provider/category_provider.dart';
+import 'screens/coupon_code/data/coupon_repository.dart';
 import 'screens/coupon_code/provider/coupon_code_provider.dart';
+import 'screens/dashboard/data/product_repository.dart';
 import 'screens/dashboard/provider/dash_board_provider.dart';
 import 'screens/login/provider/login_provider.dart';
 import 'screens/main/main_screen.dart';
 import 'screens/main/provider/main_screen_provider.dart';
+import 'screens/notification/data/notification_repository.dart';
 import 'screens/notification/provider/notification_provider.dart';
+import 'screens/order/data/order_repository.dart';
 import 'screens/order/provider/order_provider.dart';
+import 'screens/posters/data/poster_repository.dart';
 import 'screens/posters/provider/poster_provider.dart';
+import 'screens/sub_category/data/sub_category_repository.dart';
 import 'screens/sub_category/provider/sub_category_provider.dart';
+import 'screens/variants/data/variant_repository.dart';
 import 'screens/variants/provider/variant_provider.dart';
+import 'screens/variants_type/data/variant_type_repository.dart';
 import 'screens/variants_type/provider/variant_type_provider.dart';
 import 'services/auth_session_service.dart';
+import 'services/http_services.dart';
 import 'utility/constants.dart';
 
 final GlobalKey<ScaffoldMessengerState> messengerKey =
@@ -137,10 +148,11 @@ void main() async {
 
       final bool isAuthenticated =
           await AuthSessionService.instance.bootstrapSession();
+      final apiClient = HttpService();
 
       runApp(
         ChangeNotifierProvider(
-          create: (context) => DataProvider()..init(),
+          create: (context) => DataProvider(apiClient)..init(),
           child: Consumer<DataProvider>(
             builder: (context, dataProvider, child) {
               return MultiProvider(
@@ -148,27 +160,40 @@ void main() async {
                   ChangeNotifierProvider(
                       create: (context) => MainScreenProvider()),
                   ChangeNotifierProvider(
-                      create: (context) => LoginProvider(dataProvider)),
+                      create: (context) => LoginProvider(dataProvider, apiClient)),
                   ChangeNotifierProvider(
-                      create: (context) => CategoryProvider(dataProvider)),
+                    create: (context) => CategoryProvider(
+                      dataProvider,
+                      CategoryRepository(apiClient),
+                    ),
+                  ),
                   ChangeNotifierProvider(
-                      create: (context) => SubCategoryProvider(dataProvider)),
+                      create: (context) => SubCategoryProvider(
+                          dataProvider, SubCategoryRepository(apiClient))),
                   ChangeNotifierProvider(
-                      create: (context) => BrandProvider(dataProvider)),
+                      create: (context) => BrandProvider(
+                          dataProvider, BrandRepository(apiClient))),
                   ChangeNotifierProvider(
-                      create: (context) => VariantsTypeProvider(dataProvider)),
+                      create: (context) => VariantsTypeProvider(
+                          dataProvider, VariantTypeRepository(apiClient))),
                   ChangeNotifierProvider(
-                      create: (context) => VariantsProvider(dataProvider)),
+                      create: (context) => VariantsProvider(
+                          dataProvider, VariantRepository(apiClient))),
                   ChangeNotifierProvider(
-                      create: (context) => DashBoardProvider(dataProvider)),
+                      create: (context) => DashBoardProvider(
+                          dataProvider, ProductRepository(apiClient))),
                   ChangeNotifierProvider(
-                      create: (context) => CouponCodeProvider(dataProvider)),
+                      create: (context) => CouponCodeProvider(
+                          dataProvider, CouponRepository(apiClient))),
                   ChangeNotifierProvider(
-                      create: (context) => PosterProvider(dataProvider)),
+                      create: (context) => PosterProvider(
+                          dataProvider, PosterRepository(apiClient))),
                   ChangeNotifierProvider(
-                      create: (context) => OrderProvider(dataProvider)),
+                      create: (context) => OrderProvider(
+                          dataProvider, OrderRepository(apiClient))),
                   ChangeNotifierProvider(
-                      create: (context) => NotificationProvider(dataProvider)),
+                      create: (context) => NotificationProvider(
+                          dataProvider, NotificationRepository(apiClient))),
                 ],
                 child: MyApp(initialAuthenticated: isAuthenticated),
               );

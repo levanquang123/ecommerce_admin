@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
 
-import '../../../models/api_response.dart';
 import '../../../models/brand.dart';
 import '../../../models/sub_category.dart';
 import '../../../models/variant.dart';
@@ -12,13 +11,14 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../core/data/data_provider.dart';
 import '../../../models/category.dart';
-import '../../../services/http_services.dart';
 import '../../../models/product.dart';
 import '../../../utility/image_multipart.dart';
 import '../../../utility/snack_bar_helper.dart';
+import '../data/product_repository.dart';
+import '../models/product_form_models.dart';
 
 class DashBoardProvider extends ChangeNotifier {
-  HttpService service = HttpService();
+  final ProductRepository _productRepository;
   final DataProvider _dataProvider;
   final addProductFormKey = GlobalKey<FormState>();
 
@@ -58,7 +58,7 @@ class DashBoardProvider extends ChangeNotifier {
   TextEditingController bulkOfferPriceCtrl = TextEditingController();
   TextEditingController bulkQtyCtrl = TextEditingController();
 
-  DashBoardProvider(this._dataProvider);
+  DashBoardProvider(this._dataProvider, this._productRepository);
 
   @override
   void dispose() {
@@ -389,29 +389,18 @@ class DashBoardProvider extends ChangeNotifier {
         formData: formDataMap,
       );
 
-      final response = await service.addItem(
-        endpointUrl: 'products',
-        itemData: form,
-      );
+      final apiResponse = await _productRepository.createProduct(form);
 
       SnackBarHelper.hideSnackBar();
 
-      if (response.isOk) {
-        final apiResponse = ApiResponse.fromJson(response.body, null);
-
-        if (apiResponse.success == true) {
-          clearFields();
-          notifyListeners();
-          SnackBarHelper.showSuccessSnackBar(apiResponse.message);
-          await _dataProvider.getAllProducts();
-          return true;
-        } else {
-          SnackBarHelper.showErrorSnackBar(apiResponse.message);
-          return false;
-        }
+      if (apiResponse.success == true) {
+        clearFields();
+        notifyListeners();
+        SnackBarHelper.showSuccessSnackBar(apiResponse.message);
+        await _dataProvider.getAllProducts();
+        return true;
       } else {
-        SnackBarHelper.showErrorSnackBar(
-            response.body?['message'] ?? 'Request failed.');
+        SnackBarHelper.showErrorSnackBar(apiResponse.message);
         return false;
       }
     } catch (e) {
@@ -468,28 +457,20 @@ class DashBoardProvider extends ChangeNotifier {
         formData: formDataMap,
       );
 
-      final response = await service.updateItem(
-        endpointUrl: 'products',
-        itemData: form,
-        itemId: productForUpdate?.sId ?? '',
+      final apiResponse = await _productRepository.updateProduct(
+        productId: productForUpdate?.sId ?? '',
+        formData: form,
       );
 
       SnackBarHelper.hideSnackBar();
 
-      if (response.isOk) {
-        final apiResponse = ApiResponse.fromJson(response.body, null);
-        if (apiResponse.success == true) {
-          clearFields();
-          SnackBarHelper.showSuccessSnackBar(apiResponse.message);
-          await _dataProvider.getAllProducts();
-          return true;
-        } else {
-          SnackBarHelper.showErrorSnackBar(apiResponse.message);
-          return false;
-        }
+      if (apiResponse.success == true) {
+        clearFields();
+        SnackBarHelper.showSuccessSnackBar(apiResponse.message);
+        await _dataProvider.getAllProducts();
+        return true;
       } else {
-        SnackBarHelper.showErrorSnackBar(
-            response.body?['message'] ?? 'Update failed.');
+        SnackBarHelper.showErrorSnackBar(apiResponse.message);
         return false;
       }
     } catch (e) {
@@ -501,23 +482,13 @@ class DashBoardProvider extends ChangeNotifier {
 
   Future<bool> deleteProduct(Product product) async {
     try {
-      Response response = await service.deleteItem(
-        endpointUrl: 'products',
-        itemId: product.sId ?? '',
-      );
-      if (response.isOk) {
-        final apiResponse = ApiResponse.fromJson(response.body, null);
-        if (apiResponse.success == true) {
-          SnackBarHelper.showSuccessSnackBar(apiResponse.message);
-          _dataProvider.getAllProducts();
-          return true;
-        } else {
-          SnackBarHelper.showErrorSnackBar(apiResponse.message);
-          return false;
-        }
+      final apiResponse = await _productRepository.deleteProduct(product);
+      if (apiResponse.success == true) {
+        SnackBarHelper.showSuccessSnackBar(apiResponse.message);
+        _dataProvider.getAllProducts();
+        return true;
       } else {
-        SnackBarHelper.showErrorSnackBar(
-            response.body?['message'] ?? 'Delete failed.');
+        SnackBarHelper.showErrorSnackBar(apiResponse.message);
         return false;
       }
     } catch (e) {
@@ -1037,146 +1008,3 @@ class DashBoardProvider extends ChangeNotifier {
   }
 }
 
-class ProductFallbackStock {
-  final String price;
-  final String offerPrice;
-  final String quantity;
-
-  ProductFallbackStock({
-    required this.price,
-    required this.offerPrice,
-    required this.quantity,
-  });
-}
-
-class VariantBuildResult {
-  final List<Map<String, dynamic>> variants;
-  final Map<String, XFile> files;
-
-  VariantBuildResult({
-    required this.variants,
-    required this.files,
-  });
-}
-
-class VariantOptionFormData {
-  VariantType? selectedType;
-  List<Variant> selectedValues;
-
-  VariantOptionFormData({
-    this.selectedType,
-    List<Variant>? selectedValues,
-  }) : selectedValues = selectedValues ?? [];
-
-  void dispose() {
-    // no-op
-  }
-}
-
-class VariantFormData {
-  final String? id;
-  final TextEditingController skuCtrl;
-  final TextEditingController priceCtrl;
-  final TextEditingController offerPriceCtrl;
-  final TextEditingController quantityCtrl;
-  final List<AttributeFormData> attributes;
-  final List<VariantImageFormData> images;
-  bool isActive;
-
-  VariantFormData({
-    this.id,
-    required this.skuCtrl,
-    required this.priceCtrl,
-    required this.offerPriceCtrl,
-    required this.quantityCtrl,
-    required this.attributes,
-    required this.images,
-    this.isActive = true,
-  });
-
-  factory VariantFormData.fromProductVariant(
-    ProductVariant? variant, {
-    List<AttributeFormData>? attributesFromCatalog,
-  }) {
-    if (variant == null) {
-      return VariantFormData(
-        skuCtrl: TextEditingController(text: ''),
-        priceCtrl: TextEditingController(text: ''),
-        offerPriceCtrl: TextEditingController(text: ''),
-        quantityCtrl: TextEditingController(text: ''),
-        attributes: [AttributeFormData()],
-        images: [VariantImageFormData()],
-        isActive: true,
-      );
-    }
-
-    final attributeRows = attributesFromCatalog ?? [AttributeFormData()];
-    if (attributeRows.isEmpty) {
-      attributeRows.add(AttributeFormData());
-    }
-
-    final variantImages = variant.images
-        .map((image) => VariantImageFormData(existingUrl: image.url))
-        .toList();
-    if (variantImages.isEmpty) {
-      variantImages.add(VariantImageFormData());
-    }
-
-    return VariantFormData(
-      id: variant.sId,
-      skuCtrl: TextEditingController(text: variant.sku),
-      priceCtrl: TextEditingController(text: variant.price.toString()),
-      offerPriceCtrl:
-          TextEditingController(text: variant.offerPrice?.toString() ?? ''),
-      quantityCtrl: TextEditingController(text: variant.quantity.toString()),
-      attributes: attributeRows,
-      images: variantImages,
-      isActive: variant.isActive,
-    );
-  }
-
-  void dispose() {
-    skuCtrl.dispose();
-    priceCtrl.dispose();
-    offerPriceCtrl.dispose();
-    quantityCtrl.dispose();
-    for (final attr in attributes) {
-      attr.dispose();
-    }
-    for (final image in images) {
-      image.dispose();
-    }
-  }
-}
-
-class AttributeFormData {
-  VariantType? selectedVariantType;
-  Variant? selectedVariant;
-
-  AttributeFormData({
-    this.selectedVariantType,
-    this.selectedVariant,
-  });
-
-  void dispose() {
-    // no-op
-  }
-}
-
-class VariantImageFormData {
-  String? existingUrl;
-  String? previewUrl;
-  File? selectedFile;
-  XFile? selectedXFile;
-
-  VariantImageFormData({
-    this.existingUrl,
-    this.previewUrl,
-    this.selectedFile,
-    this.selectedXFile,
-  });
-
-  void dispose() {
-    // no-op
-  }
-}
