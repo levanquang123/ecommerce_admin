@@ -8827,7 +8827,7 @@ case 2:s=3
 return A.m(A.IF(),$async$Rj)
 case 3:p=b
 s=4
-return A.m(A.a_i(new A.aYh("admin-web@"+p.c+"+"+p.d,"development".toLowerCase()==="production"),new A.aYi()),$async$Rj)
+return A.m(A.a_i(new A.aYh("admin-web@"+p.c+"+"+p.d,"production".toLowerCase()==="production"),new A.aYi()),$async$Rj)
 case 4:return A.q(null,r)}})
 return A.r($async$Rj,r)},
 aWU:function aWU(a){this.a=a},
@@ -53362,7 +53362,7 @@ $S:57}
 A.aYh.prototype={
 $1(a){var s
 a.sPt("")
-a.fr="development"
+a.fr="production"
 a.dy=this.a
 s=this.b
 a.xr=s?0.1:1
